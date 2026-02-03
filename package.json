@@ -26,7 +26,8 @@
     "process"
   ],
   "files": [
-    "components"
+    "components",
+    "vite.config.ts"
   ],
   "sideEffects": false,
   "engines": {
