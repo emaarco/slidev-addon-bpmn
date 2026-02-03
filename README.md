@@ -7,9 +7,7 @@ Display BPMN 2.0 diagrams in your [Slidev](https://sli.dev/) presentations. Whet
 
 Powered by [bpmn-js](https://bpmn.io/toolkit/bpmn-js/) from bpmn.io.
 
-![example](./example-export/1.png)
-
----
+![Example BPMN diagram in Slidev](./public/example-slide.png)
 
 ## 🚀 Quick Start
 
@@ -18,8 +16,6 @@ Powered by [bpmn-js](https://bpmn.io/toolkit/bpmn-js/) from bpmn.io.
 3. Use the `<Bpmn>` component in your slides
 
 That's it — your BPMN diagrams are ready to present!
-
----
 
 ## 📦 Installation
 
@@ -46,8 +42,6 @@ Or in your `package.json`:
 }
 ```
 
----
-
 ## 🔧 Usage
 
 ```vue
@@ -59,8 +53,6 @@ Or in your `package.json`:
 
 The component fetches your BPMN file, renders it using bpmn-js, and exports it as a crisp SVG that scales beautifully at any size.
 
----
-
 ## ⚙️ Props
 
 | Name | Type | Default | Description |
@@ -69,8 +61,6 @@ The component fetches your BPMN file, renders it using bpmn-js, and exports it a
 | `width` | `string` | `'100%'` | Maximum width of the diagram |
 | `height` | `string` | `'auto'` | Height of the diagram |
 
----
-
 ## 💡 Tips
 
 - **File location**: BPMN files must be placed in the `public/` folder
@@ -78,18 +68,11 @@ The component fetches your BPMN file, renders it using bpmn-js, and exports it a
 - **Styling**: Use Tailwind classes via the `class` prop to control sizing
 - **Export**: Works seamlessly with Slidev's PDF/PNG export features
 
----
-
 ## 🤝 Contributing
 
-Contributions are welcome! Feel free to:
-- Report bugs or suggest features via [issues](https://github.com/emaarco/slidev-addon-bpmn/issues)
-- Submit pull requests with improvements
-- Share your ideas and use cases
+Contributions are welcome! Feel free to report bugs, suggest features via [issues](https://github.com/emaarco/slidev-addon-bpmn/issues), submit pull requests with improvements, or share your ideas and use cases.
 
 To develop locally: clone the repo, run `npm install`, then `npm run dev` to test your changes.
-
----
 
 ## 🙏 Credits
 
