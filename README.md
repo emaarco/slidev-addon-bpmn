@@ -1,72 +1,97 @@
-# slidev-addon-excalidraw
+# 📊 slidev-addon-bpmn
 
-show excalidraw in [slidev](https://sli.dev/)
+[![npm version](https://img.shields.io/npm/v/slidev-addon-bpmn)](https://www.npmjs.com/package/slidev-addon-bpmn)
+[![license](https://img.shields.io/npm/l/slidev-addon-bpmn)](https://github.com/emaarco/slidev-addon-bpmn/blob/main/LICENSE)
+
+Display BPMN 2.0 diagrams in your [Slidev](https://sli.dev/) presentations. Whether you're presenting workflow designs, explaining process automation, or teaching BPMN concepts — this addon has you covered! 💡
+
+Powered by [bpmn-js](https://bpmn.io/toolkit/bpmn-js/) from bpmn.io.
 
 ![example](./example-export/1.png)
 
-```md
 ---
-layout: center
+
+## 🚀 Quick Start
+
+1. Install the addon in your Slidev project
+2. Place your `.bpmn` files in the `public/` folder
+3. Use the `<Bpmn>` component in your slides
+
+That's it — your BPMN diagrams are ready to present!
+
 ---
-<div class="flex flex-col items-center">
 
-# slidev-addon-excalidraw
-
-<Excalidraw
-  drawFilePath="./example.excalidraw.json"
-  class="w-[600px]"
-  :darkMode="false"
-  :background="false"
-/>
-
-</div>
-```
-
-## Installation
+## 📦 Installation
 
 ```bash
-pnpm add slidev-addon-excalidraw
+npm install slidev-addon-bpmn
 ```
 
-### Usage
-
--   Define this addon in `frontmatter`
+Then register the addon in your slide's frontmatter:
 
 ```yaml
+---
 addons:
-    - slidev-addon-excalidraw
+  - slidev-addon-bpmn
+---
 ```
 
--   or in `package.json`
+Or in your `package.json`:
 
 ```json
- "slidev": {
-    "addons": [
-      "slidev-addon-excalidraw"
-    ]
-  },
+{
+  "slidev": {
+    "addons": ["slidev-addon-bpmn"]
+  }
+}
 ```
 
-## Components
+---
 
-### Excalidraw
-
-> [!NOTE]
-> excalidraw file must be in `public`, and drawFilePath must be relative to your [Public Base Path](https://vitejs.dev/guide/build.html#public-base-path).
+## 🔧 Usage
 
 ```vue
-<Excalidraw
-  drawFilePath="./example.excalidraw.json"
-  class="w-[600px]"
-  :darkMode="false"
-  :background="false"
+<Bpmn
+  bpmnFilePath="./my-process.bpmn"
+  class="w-[800px]"
 />
 ```
 
-### Options
+The component fetches your BPMN file, renders it using bpmn-js, and exports it as a crisp SVG that scales beautifully at any size.
+
+---
+
+## ⚙️ Props
 
 | Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| `drawFilePath` | `string` | `undefined` | The path to the excalidraw json file. It must be relative to your [Public Base Path](https://vitejs.dev/guide/build.html#public-base-path). |
-| `darkMode` | `boolean` | `false` | Whether to use dark mode. |
-| `background` | `boolean` | `false` | Whether to show the background. |
+|------|------|---------|-------------|
+| `bpmnFilePath` | `string` | *required* | Path to the `.bpmn` file (relative to `public/`) |
+| `width` | `string` | `'100%'` | Maximum width of the diagram |
+| `height` | `string` | `'auto'` | Height of the diagram |
+
+---
+
+## 💡 Tips
+
+- **File location**: BPMN files must be placed in the `public/` folder
+- **Supported formats**: Standard BPMN 2.0 XML files (exported from Camunda Modeler, bpmn.io, etc.)
+- **Styling**: Use Tailwind classes via the `class` prop to control sizing
+- **Export**: Works seamlessly with Slidev's PDF/PNG export features
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+- Report bugs or suggest features via [issues](https://github.com/emaarco/slidev-addon-bpmn/issues)
+- Submit pull requests with improvements
+- Share your ideas and use cases
+
+To develop locally: clone the repo, run `npm install`, then `npm run dev` to test your changes.
+
+---
+
+## 🙏 Credits
+
+- [bpmn-js](https://github.com/bpmn-io/bpmn-js) by [bpmn.io](https://bpmn.io/)
+- Inspired by [slidev-addon-excalidraw](https://github.com/haydenull/slidev-addon-excalidraw)

@@ -3,13 +3,11 @@ layout: center
 ---
 <div class="flex flex-col items-center">
 
-# slidev-addon-excalidraw
+# slidev-addon-bpmn
 
-<Excalidraw
-  drawFilePath="./example.excalidraw.json"
-  class="w-[600px]"
-  :darkMode="false"
-  :background="false"
+<Bpmn
+  bpmnFilePath="./newsletter.bpmn"
+  class="w-[800px]"
 />
 
 </div>

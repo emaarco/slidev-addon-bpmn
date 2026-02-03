@@ -1,0 +1,33 @@
+# Development files
+example.md
+example-export/
+public/
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Claude
+.claude/
+
+# Dependencies (npm includes package.json deps automatically)
+node_modules/
+
+# Lock files
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Misc
+*.log
+*.tgz
