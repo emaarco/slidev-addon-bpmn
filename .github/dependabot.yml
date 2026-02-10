@@ -1,0 +1,39 @@
+version: 2
+updates:
+  # Config for npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    assignees:
+      - "emaarco"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+          - "minor"
+          - "major"
+    open-pull-requests-limit: 2
+
+  # Config for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    assignees:
+      - "emaarco"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+          - "minor"
+          - "major"
+    open-pull-requests-limit: 2

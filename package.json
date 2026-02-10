@@ -1,0 +1,47 @@
+{
+  "name": "slidev-addon-bpmn",
+  "version": "1.0.0",
+  "description": "Display BPMN 2.0 diagrams in Slidev presentations",
+  "type": "module",
+  "scripts": {
+    "dev": "slidev example.md",
+    "build": "slidev build example.md",
+    "export": "slidev export example.md",
+    "screenshot": "slidev export example.md --format png"
+  },
+  "author": "Marco Schäck (https://github.com/emaarco)",
+  "license": "MIT",
+  "dependencies": {
+    "bpmn-js": "18.11.0"
+  },
+  "devDependencies": {
+    "@slidev/cli": "0.49.11",
+    "@slidev/theme-default": "0.25.0"
+  },
+  "keywords": [
+    "slidev",
+    "slidev-addon",
+    "bpmn",
+    "bpmn-js",
+    "bpmn.io",
+    "diagram",
+    "workflow",
+    "process"
+  ],
+  "files": [
+    "components",
+    "vite.config.ts"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emaarco/slidev-addon-bpmn.git"
+  },
+  "bugs": {
+    "url": "https://github.com/emaarco/slidev-addon-bpmn/issues"
+  },
+  "homepage": "https://github.com/emaarco/slidev-addon-bpmn#readme"
+}
