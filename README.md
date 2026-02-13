@@ -44,18 +44,28 @@ Or in your `package.json`:
 }
 ```
 
-## 🔧 Usage
+## 🧩 Components
+
+This addon provides two complementary components for different use cases:
+
+- **`<Bpmn>`** - Static BPMN rendering for PDFs, presentations, and documentation
+- **`<BpmnTokenSimulation>`** - Interactive token-based process simulation for live demos
+
+## 🔧 Component Reference
+
+### Bpmn Component
+
+Renders BPMN diagrams as static SVG images. Perfect for PDF exports and presentations.
 
 ```vue
 <Bpmn
   bpmnFilePath="./my-process.bpmn"
-  class="w-[800px]"
+  width="100%"
+  height="400px"
 />
 ```
 
-The component fetches your BPMN file, renders it using bpmn-js, and exports it as a crisp SVG that scales beautifully at any size.
-
-## ⚙️ Props
+**Props:**
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
@@ -63,12 +73,34 @@ The component fetches your BPMN file, renders it using bpmn-js, and exports it a
 | `width` | `string` | `'100%'` | Maximum width of the diagram |
 | `height` | `string` | `'auto'` | Height of the diagram |
 
+### BpmnTokenSimulation Component
+
+Renders interactive BPMN diagrams with token simulation capabilities. Perfect for process walkthroughs and training.
+
+```vue
+<BpmnTokenSimulation
+  bpmnFilePath="./my-process.bpmn"
+  width="100%"
+  height="500px"
+/>
+```
+
+**Props:**
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `bpmnFilePath` | `string` | *required* | Path to the `.bpmn` file (relative to `public/`) |
+| `width` | `string` | `'100%'` | Width of the diagram container |
+| `height` | `string` | `'auto'` | Height of the diagram container (defaults to 500px when 'auto') |
+
+The token simulation provides interactive controls for stepping through process execution with animated token flow.
+
 ## 💡 Tips
 
 - **File location**: BPMN files must be placed in the `public/` folder
 - **Supported formats**: Standard BPMN 2.0 XML files (exported from Camunda Modeler, bpmn.io, etc.)
 - **Styling**: Use Tailwind classes via the `class` prop to control sizing
-- **Export**: Works seamlessly with Slidev's PDF/PNG export features
+- **Export**: Each `<Bpmn>` component works seamlessly with Slidev's PDF/PNG export features
 
 ## 🤝 Contributing
 
