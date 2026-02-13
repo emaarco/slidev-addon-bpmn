@@ -1,6 +1,6 @@
 # Publishing Guide
 
-Quick reference for deploying new versions of `slidev-addon-bpmn` to npm.
+Quick reference for deploying new versions of `slidev-addon-bpmn` to npm. Use this if you want to deploy manually. However, also consider, that we've automated this with a GitHub action
 
 ## Prerequisites
 
@@ -44,6 +44,7 @@ npm run build
 ### 4. Publish to npm
 
 ```bash
+npm login
 npm publish
 ```
 
@@ -59,32 +60,8 @@ git push
 git push --tags
 ```
 
-## Quick Checklist
-
-- [ ] All changes committed
-- [ ] Tests passing (if applicable)
-- [ ] Version bumped (`npm version [patch|minor|major]`)
-- [ ] Package built (`npm run build`)
-- [ ] Published to npm (`npm publish`)
-- [ ] Pushed to GitHub with tags
-
 ## Verify Publication
 
 Check your package:
 - npm page: https://www.npmjs.com/package/slidev-addon-bpmn
 - Install test: `npm install slidev-addon-bpmn` in a fresh project
-
-## Troubleshooting
-
-**Not logged in?**
-```bash
-npm login
-```
-
-**Version already exists?**
-```bash
-npm version patch  # Bump again
-```
-
-**Files missing from package?**
-Check the `files` field in `package.json` or create `.npmignore`

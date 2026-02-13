@@ -58,3 +58,41 @@ Use `example.md` as the test file - it demonstrates the component usage with a s
 
 ## Development Process
 - When working with this repository, always use semantic commit-messages (e.g. feat: add bpmn component)
+
+## Release & Publishing
+
+This project uses automated npm publishing via GitHub Actions. When a GitHub release is published, the workflow automatically publishes to npm.
+
+### Creating a New Release
+
+Use the GitHub CLI to create releases:
+
+```bash
+# 1. Check current version and previous releases
+gh release list --limit 5
+
+# 2. Update version in package.json if needed
+# (The version should already be bumped before creating the release)
+
+# 3. Push any local tags to remote
+git push origin v<VERSION>
+
+# 4. Create a draft release with release notes
+# When creating the notes, consider the previous ones as an example
+gh release create v<VERSION> --title "v<VERSION>" --notes "..." --draft
+
+# 5. After that you're done. A maintainer will review and publish the draft
+```
+
+**Automated Publishing**: When the release is published (draft=false), the GitHub Action automatically runs `npm publish` using OIDC authentication.
+
+**Manual Publishing**: For manual publishing or if automation fails, see [docs/PUBLISHING.md](docs/PUBLISHING.md)
+
+### Release Notes Format
+
+Follow the existing format from previous releases:
+- Start with "🚀 Release – slidev-addon-bpmn v<VERSION>"
+- Include "What's New" section with key features
+- List all features (carry forward from previous release if needed)
+- Include usage examples
+- End with "Full Changelog" link comparing previous to current version
