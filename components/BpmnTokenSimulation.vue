@@ -1,10 +1,7 @@
 <template>
   <div :style="{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: props.width, height: containerHeight }">
     <p v-if="loading">Loading BPMN diagram...</p>
-    <p v-if="error" class="text-red-500">{{ error }}</p>
-    <div
-        ref="containerRef"
-        :style="{
+    <div ref="containerRef" :style="{
     width: `calc(${props.width} - ${5* 2}px)`,
     height: `calc(${containerHeight} - ${5 * 2}px)`,
     margin: `5px`,
@@ -14,7 +11,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+
+import { nextTick, onMounted, ref } from 'vue'
 import BpmnViewer from 'bpmn-js/lib/Viewer'
 import 'bpmn-js/dist/assets/bpmn-js.css'
 import tokenSimulation from 'bpmn-js-token-simulation/lib/viewer'
@@ -22,8 +20,8 @@ import { onSlideEnter } from '@slidev/client'
 import 'bpmn-js-token-simulation/assets/css/bpmn-js-token-simulation.css'
 
 const loading = ref(false)
-const error = ref<string | null>(null)
 const containerRef = ref<HTMLDivElement | null>(null)
+const isRendered = ref(false)
 
 const props = withDefaults(defineProps<{
   bpmnFilePath: string
@@ -34,14 +32,38 @@ const props = withDefaults(defineProps<{
   height: 'auto',
 })
 
-// Live containers need explicit height, so fallback to 500px when 'auto'
 const containerHeight = props.height === 'auto' ? '500px' : props.height
 
-onSlideEnter(async () => {
+/**
+ * Polls for container dimensions to be ready before rendering.
+ * Prevents "non-finite" SVG matrix errors when canvas.zoom() is called.
+ */
+async function waitForContainer(): Promise<void> {
+  return new Promise((resolve) => {
+    const checkDimensions = () => {
+      if (containerRef.value && containerRef.value.clientWidth > 0 && containerRef.value.clientHeight > 0) {
+        resolve()
+      } else {
+        requestAnimationFrame(checkDimensions)
+      }
+    }
+    checkDimensions()
+  })
+}
+
+/**
+ * Renders the BPMN diagram with token simulation.
+ * Includes duplicate prevention since Slidev calls both onMounted and onSlideEnter.
+ */
+async function renderBpmn() {
+
+  // Prevent duplicate rendering
+  if (isRendered.value) return
+  isRendered.value = true
   loading.value = true
-  error.value = null
 
   try {
+    await waitForContainer()
     const url = new URL(props.bpmnFilePath, window.location.origin + import.meta.env.BASE_URL).href
     const response = await fetch(url)
 
@@ -61,12 +83,29 @@ onSlideEnter(async () => {
     canvas.resized()
     canvas.zoom('fit-viewport', 'auto')
 
-    error.value = null
   } catch (err) {
-    error.value = `Failed to load BPMN: ${err instanceof Error ? err.message : String(err)}`
+    isRendered.value = false
     console.error('BPMN loading error:', err)
   } finally {
     loading.value = false
   }
+}
+
+/**
+ * Render on the component mount for PDF export compatibility.
+ * In headless export mode, onSlideEnter doesn't fire.
+ */
+onMounted(async () => {
+  await nextTick()
+  await renderBpmn()
 })
+
+/**
+ * Render when the slide becomes active in a live preview.
+ * Container dimensions are only valid when the slide is visible.
+ */
+onSlideEnter(async () => {
+  await renderBpmn()
+})
+
 </script>
