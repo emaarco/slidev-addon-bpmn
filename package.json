@@ -1,6 +1,6 @@
 {
   "name": "slidev-addon-bpmn",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Display BPMN 2.0 diagrams in Slidev presentations",
   "type": "module",
   "scripts": {
