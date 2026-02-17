@@ -1,0 +1,56 @@
+name: Feature / Enhancement
+description: Request a new feature or improvement to slidev-addon-bpmn.
+title: "As a <persona>, I want <goal>"
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keep the title in user-story style: **"As a \<persona\>, I want \<goal\> [so that \<benefit\>]"**
+        Titles must be specific and actionable (max ~72 characters).
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences describing the request in plain language.
+      placeholder: "Briefly describe what you are asking for."
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-state
+    attributes:
+      label: Current State
+      description: What is the situation today? Describe the gap or missing capability.
+      placeholder: "Today, users cannot…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: desired-state
+    attributes:
+      label: Desired State
+      description: What should be possible after this is implemented?
+      placeholder: "After this change, users will be able to…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: added-value
+    attributes:
+      label: Added Value
+      description: Why does this matter? What benefit does it bring to users or maintainers?
+      placeholder: "This matters because…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Notes
+      description: "Optional: implementation hints, affected files, related issues, or links."
+      placeholder: "N/A"
+    validations:
+      required: false

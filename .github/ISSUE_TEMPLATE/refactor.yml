@@ -1,0 +1,54 @@
+name: Refactor / Tech Debt
+description: Propose internal restructuring or cleanup without changing external behavior.
+title: "refactor: <what is being restructured and why>"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use the title format: **"refactor: \<what is being restructured and why\>"**
+        No label is applied to refactor issues by convention.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences on what needs to be restructured and why.
+      placeholder: "The current X implementation is difficult to maintain because…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-state
+    attributes:
+      label: Current State
+      description: Describe the existing code structure or design that is problematic.
+      placeholder: "Currently, the code in `components/Bpmn.vue` does X by…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: desired-state
+    attributes:
+      label: Desired State
+      description: Describe the target structure or design after the refactor.
+      placeholder: "After the refactor, the code should…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: added-value
+    attributes:
+      label: Added Value
+      description: "What does this improve? (e.g. maintainability, testability, readability)"
+      placeholder: "This improves maintainability by…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Notes
+      description: "Optional: affected files/modules, migration steps, breaking changes, related issues."
+      placeholder: "N/A"
+    validations:
+      required: false
