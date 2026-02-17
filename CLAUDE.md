@@ -61,38 +61,8 @@ Use `example.md` as the test file - it demonstrates the component usage with a s
 
 ## Release & Publishing
 
-This project uses automated npm publishing via GitHub Actions. When a GitHub release is published, the workflow automatically publishes to npm.
+Use the `/publish-release` skill to create and publish new releases.
 
-### Creating a New Release
+## Skills
 
-Use the GitHub CLI to create releases:
-
-```bash
-# 1. Check current version and previous releases
-gh release list --limit 5
-
-# 2. Update version in package.json if needed
-# (The version should already be bumped before creating the release)
-
-# 3. Push any local tags to remote
-git push origin v<VERSION>
-
-# 4. Create a draft release with release notes
-# When creating the notes, consider the previous ones as an example
-gh release create v<VERSION> --title "v<VERSION>" --notes "..." --draft
-
-# 5. After that you're done. A maintainer will review and publish the draft
-```
-
-**Automated Publishing**: When the release is published (draft=false), the GitHub Action automatically runs `npm publish` using OIDC authentication.
-
-**Manual Publishing**: For manual publishing or if automation fails, see [docs/PUBLISHING.md](docs/PUBLISHING.md)
-
-### Release Notes Format
-
-Follow the existing format from previous releases:
-- Start with "🚀 Release – slidev-addon-bpmn v<VERSION>"
-- Include "What's New" section with key features
-- List all features (carry forward from previous release if needed)
-- Include usage examples
-- End with "Full Changelog" link comparing previous to current version
+This repo ships with custom Claude Code skills in `.claude/skills/`. When a task matches an available skill, then use this skill instead of implementing it manually.
