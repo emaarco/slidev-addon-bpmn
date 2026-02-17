@@ -66,3 +66,8 @@ Use the `/publish-release` skill to create and publish new releases.
 ## Skills
 
 This repo ships with custom Claude Code skills in `.claude/skills/`. When a task matches an available skill, then use this skill instead of implementing it manually.
+
+| Skill | Command | When to use |
+|-------|---------|-------------|
+| publish-release | `/publish-release` | Create and publish a new npm release |
+| create-ticket | `/create-ticket` | Create a GitHub issue (feature, bug, or refactor) |

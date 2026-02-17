@@ -1,0 +1,60 @@
+name: Bug Report
+description: Report something that is broken or not working as expected.
+title: "<Component/Area>: <short description of the broken behavior>"
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use the title format: **"\<Component/Area\>: \<short description of the broken behavior\>"**
+        Example: `Bpmn.vue: SVG not rendered when BASE_URL contains a path segment`
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences describing what is broken.
+      placeholder: "When I do X, Y happens instead of Z."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Numbered list of steps that reliably trigger the bug.
+      placeholder: |
+        1. Add the `<Bpmn>` component to a slide
+        2. Set the `src` prop to a valid .bpmn file
+        3. Run `npm run dev`
+        4. Observe…
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current Behavior
+      description: What actually happens (include error messages or stack traces if available).
+      placeholder: "The component renders a blank area. Console shows: …"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What should happen instead.
+      placeholder: "The BPMN diagram should be rendered as an SVG."
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Notes
+      description: "Optional: affected files, suspected root cause, environment details, related issues."
+      placeholder: "N/A"
+    validations:
+      required: false
