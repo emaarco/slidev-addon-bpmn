@@ -12,8 +12,8 @@
   "author": "Marco Schäck (https://github.com/emaarco)",
   "license": "MIT",
   "dependencies": {
-    "bpmn-js": "18.11.0",
-    "bpmn-js-token-simulation": "0.39.1"
+    "bpmn-js": "18.12.0",
+    "bpmn-js-token-simulation": "0.39.2"
   },
   "devDependencies": {
     "@slidev/cli": "52.12.0",
