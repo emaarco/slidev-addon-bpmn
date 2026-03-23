@@ -9,7 +9,8 @@ This is a Slidev addon that enables displaying BPMN 2.0 diagrams in presentation
 ## Development Commands
 
 ```bash
-# Run the example presentation in dev mode
+# Run the example presentation in dev mode (requires git and `npm install -g portless`)
+# Dev server URL is branch-based, e.g. http://slidev-addon-bpmn-main.localhost:1355
 npm run dev
 
 # Build the example presentation
