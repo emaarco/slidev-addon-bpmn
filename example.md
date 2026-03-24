@@ -1,4 +1,3 @@
-<!-- Styles scoped to this example presentation only – not shipped with the addon -->
 <style>
 h1 {
   color: #335DE4;
