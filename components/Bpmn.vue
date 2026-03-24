@@ -11,7 +11,7 @@ import { onMounted, ref } from 'vue'
 import BpmnViewer from 'bpmn-js/lib/Viewer'
 import 'bpmn-js/dist/assets/bpmn-js.css'
 
-const loading = ref(false)
+const loading = ref(true)
 const error = ref<string | null>(null)
 const svg = ref<string | null>(null)
 
@@ -67,6 +67,9 @@ async function loadAndRenderBpmn(path: string): Promise<void> {
     const parser = new DOMParser()
     const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml')
     const svgElement = svgDoc.documentElement
+
+    // Strip potentially dangerous elements from the SVG
+    svgDoc.querySelectorAll('script, foreignObject').forEach(el => el.remove())
 
     svgElement.style.maxWidth = props.width
     svgElement.style.height = props.height

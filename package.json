@@ -34,7 +34,17 @@
     "components",
     "vite.config.ts"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "peerDependencies": {
+    "@slidev/cli": ">=50"
+  },
+  "peerDependenciesMeta": {
+    "@slidev/cli": {
+      "optional": false
+    }
+  },
   "engines": {
     "node": ">=20"
   },

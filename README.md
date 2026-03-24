@@ -99,7 +99,7 @@ The token simulation provides interactive controls for stepping through process 
 
 - **File location**: BPMN files must be placed in the `public/` folder
 - **Supported formats**: Standard BPMN 2.0 XML files (exported from Camunda Modeler, bpmn.io, etc.)
-- **Styling**: Use Tailwind classes via the `class` prop to control sizing
+- **Styling**: Use Tailwind classes on the component element to control sizing
 - **Export**: Each `<Bpmn>` component works seamlessly with Slidev's PDF/PNG export features
 
 ## 🤝 Contributing
