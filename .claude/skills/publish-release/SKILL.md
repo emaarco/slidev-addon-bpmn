@@ -39,6 +39,8 @@ npm version minor
 npm version major
 ```
 
+Use a semantic commit message: `npm version patch -m "chore(release): v%s"`
+
 This updates `package.json`, creates a git commit, and creates a git tag (requires a clean git repo). Use `--no-git-tag-version` to skip git operations if needed.
 
 ### 2. Push to GitHub
@@ -71,7 +73,7 @@ Follow this format consistently:
 - Start with `🚀 Release – slidev-addon-bpmn v<VERSION>`
 - Include a **What's New** section with key features
 - List all features (carry forward from previous release if unchanged)
-- Include usage examples
+- Only include usage examples if something functional has changed (e.g., new component, changed API)
 - End with a **Full Changelog** link:
   `https://github.com/emaarco/slidev-addon-bpmn/compare/v<PREV>...v<VERSION>`
 
