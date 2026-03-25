@@ -12,7 +12,7 @@
   "author": "Marco Schäck (https://github.com/emaarco)",
   "license": "MIT",
   "dependencies": {
-    "bpmn-js": "18.13.1",
+    "bpmn-js": "18.13.2",
     "bpmn-js-token-simulation": "0.39.3"
   },
   "devDependencies": {
