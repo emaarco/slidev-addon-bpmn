@@ -10,9 +10,9 @@
 import { onMounted, ref } from 'vue'
 import BpmnViewer from 'bpmn-js/lib/Viewer'
 import 'bpmn-js/dist/assets/bpmn-js.css'
+import { useBpmn } from '../composables/useBpmn'
 
-const loading = ref(true)
-const error = ref<string | null>(null)
+const { loading, error, fetchBpmnXml, withLoading } = useBpmn()
 const svg = ref<string | null>(null)
 
 const props = withDefaults(defineProps<{
@@ -24,29 +24,12 @@ const props = withDefaults(defineProps<{
   height: 'auto',
 })
 
-onMounted(async () => {
-  loading.value = true
-  error.value = null
-
-  try {
-    await loadAndRenderBpmn(props.bpmnFilePath)
-  } catch (err) {
-    error.value = `Failed to load BPMN: ${err instanceof Error ? err.message : String(err)}`
-    console.error('BPMN loading error:', err)
-  } finally {
-    loading.value = false
-  }
+onMounted(() => {
+  withLoading(() => loadAndRenderBpmn(props.bpmnFilePath))
 })
 
 async function loadAndRenderBpmn(path: string): Promise<void> {
-  const url = new URL(path, window.location.origin + import.meta.env.BASE_URL).href
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch BPMN file: ${response.status}`)
-  }
-
-  const bpmnXml = await response.text()
+  const bpmnXml = await fetchBpmnXml(path)
 
   // Create off-screen container for bpmn-js rendering (requires DOM element)
   // Fixed 1920x1080 size may clip large diagrams or waste space for small ones

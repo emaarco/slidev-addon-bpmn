@@ -19,12 +19,12 @@ import 'bpmn-js/dist/assets/bpmn-js.css'
 import tokenSimulation from 'bpmn-js-token-simulation/lib/viewer'
 import { onSlideEnter } from '@slidev/client'
 import 'bpmn-js-token-simulation/assets/css/bpmn-js-token-simulation.css'
+import { useBpmn } from '../composables/useBpmn'
 
 const margin = 5
 const containerWaitTimeout = 5000
 
-const loading = ref(true)
-const error = ref<string | null>(null)
+const { loading, error, fetchBpmnXml, withLoading } = useBpmn()
 const containerRef = ref<HTMLDivElement | null>(null)
 const isRendered = ref(false)
 let viewer: InstanceType<typeof BpmnViewer> | null = null
@@ -69,15 +69,10 @@ async function renderBpmn() {
   // Prevent duplicate rendering
   if (isRendered.value) return
   isRendered.value = true
-  loading.value = true
-  error.value = null
 
-  try {
+  const result = await withLoading(async () => {
     await waitForContainer()
-    const url = new URL(props.bpmnFilePath, window.location.origin + import.meta.env.BASE_URL).href
-    const response = await fetch(url)
-
-    if (!response.ok) throw new Error(`Failed to fetch BPMN file: ${response.status}`)
+    const bpmnXml = await fetchBpmnXml(props.bpmnFilePath)
 
     const disableSnackbarModule = {notifications: ['value', {showNotification: () => {}}]}
     viewer = new BpmnViewer({
@@ -85,20 +80,15 @@ async function renderBpmn() {
       additionalModules: [tokenSimulation, disableSnackbarModule]
     })
 
-    const bpmnXml = await response.text()
     await viewer.importXML(bpmnXml)
 
     const canvas = viewer.get('canvas') as any
-
     canvas.resized()
     canvas.zoom('fit-viewport', 'auto')
+  })
 
-  } catch (err) {
+  if (result === undefined && error.value) {
     isRendered.value = false
-    error.value = `Failed to load BPMN: ${err instanceof Error ? err.message : String(err)}`
-    console.error('BPMN loading error:', err)
-  } finally {
-    loading.value = false
   }
 }
 
