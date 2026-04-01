@@ -2,6 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/slidev-addon-bpmn)](https://www.npmjs.com/package/slidev-addon-bpmn)
 [![license](https://img.shields.io/npm/l/slidev-addon-bpmn)](https://github.com/emaarco/slidev-addon-bpmn/blob/main/LICENSE)
+[![demo](https://img.shields.io/badge/demo-live-blue)](https://emaarco.github.io/slidev-addon-bpmn/)
 
 Display BPMN 2.0 diagrams in your [Slidev](https://sli.dev/) presentations. Whether you're presenting workflow designs, explaining process automation, or teaching BPMN concepts — this addon has you covered! 💡
 
