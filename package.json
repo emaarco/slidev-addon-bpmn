@@ -12,13 +12,13 @@
   "author": "Marco Schäck (https://github.com/emaarco)",
   "license": "MIT",
   "dependencies": {
-    "bpmn-js": "18.13.2",
+    "bpmn-js": "18.14.0",
     "bpmn-js-token-simulation": "0.39.3"
   },
   "devDependencies": {
     "@slidev/cli": "52.14.1",
     "@slidev/theme-default": "0.25.0",
-    "playwright-chromium": "1.58.2"
+    "playwright-chromium": "1.59.0"
   },
   "keywords": [
     "slidev",
