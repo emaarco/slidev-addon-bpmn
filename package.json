@@ -7,7 +7,8 @@
     "dev": "portless run sh -c 'npx slidev example.md --port $PORT --remote --bind 127.0.0.1'",
     "build": "slidev build example.md",
     "export": "slidev export example.md",
-    "screenshot": "slidev export example.md --format png"
+    "screenshot": "slidev export example.md --format png",
+    "build:pages": "slidev build example.md --base /slidev-addon-bpmn/ --out dist"
   },
   "author": "Marco Schäck (https://github.com/emaarco)",
   "license": "MIT",
