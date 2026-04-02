@@ -103,6 +103,12 @@ The token simulation provides interactive controls for stepping through process 
 - **Styling**: Use Tailwind classes on the component element to control sizing
 - **Export**: Each `<Bpmn>` component works seamlessly with Slidev's PDF/PNG export features
 
+## 🔗 Related
+
+> **Looking for DMN?** If you're modeling decision tables alongside your processes, check out
+> [slidev-addon-dmn](https://github.com/emaarco/slidev-addon-dmn) — the sister addon for rendering
+> DMN diagrams in Slidev!
+
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to report bugs, suggest features via [issues](https://github.com/emaarco/slidev-addon-bpmn/issues), submit pull requests with improvements, or share your ideas and use cases.
