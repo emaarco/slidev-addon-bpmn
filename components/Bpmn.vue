@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :style="{ width: props.width, height: props.height }">
     <p v-if="loading">Loading BPMN diagram...</p>
     <p v-if="error" class="text-red-500">{{ error }}</p>
     <div v-if="svg" v-html="svg"></div>
@@ -19,9 +19,11 @@ const props = withDefaults(defineProps<{
   bpmnFilePath: string
   width?: string
   height?: string
+  align?: 'left' | 'center'
 }>(), {
   width: '100%',
   height: 'auto',
+  align: 'left',
 })
 
 onMounted(() => {
@@ -32,8 +34,6 @@ async function loadAndRenderBpmn(path: string): Promise<void> {
   const bpmnXml = await fetchBpmnXml(path)
 
   // Create off-screen container for bpmn-js rendering (requires DOM element)
-  // Fixed 1920x1080 size may clip large diagrams or waste space for small ones
-  // If this causes issues, we should consider auto-detecting diagram bounds or using viewBox-based sizing
   const container = document.createElement('div')
   container.style.width = '1920px'
   container.style.height = '1080px'
@@ -54,9 +54,18 @@ async function loadAndRenderBpmn(path: string): Promise<void> {
     // Strip potentially dangerous elements from the SVG
     svgDoc.querySelectorAll('script, foreignObject').forEach(el => el.remove())
 
-    svgElement.style.maxWidth = props.width
-    svgElement.style.height = props.height
-    svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+    // Expand viewBox to add padding around diagram edges
+    const viewBox = svgElement.getAttribute('viewBox')
+    if (viewBox) {
+      const [x, y, w, h] = viewBox.split(' ').map(Number)
+      const pad = Math.max(w, h) * 0.02
+      svgElement.setAttribute('viewBox', `${x - pad} ${y - pad} ${w + pad * 2} ${h + pad * 2}`)
+    }
+
+    svgElement.style.width = '100%'
+    svgElement.style.height = '100%'
+    const alignValue = props.align === 'center' ? 'xMidYMid meet' : 'xMinYMin meet'
+    svgElement.setAttribute('preserveAspectRatio', alignValue)
 
     svg.value = svgElement.outerHTML
 
