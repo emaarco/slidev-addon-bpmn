@@ -19,11 +19,9 @@ const props = withDefaults(defineProps<{
   bpmnFilePath: string
   width?: string
   height?: string
-  align?: 'left' | 'center'
 }>(), {
   width: '100%',
   height: 'auto',
-  align: 'left',
 })
 
 onMounted(() => {
@@ -64,8 +62,7 @@ async function loadAndRenderBpmn(path: string): Promise<void> {
 
     svgElement.style.width = '100%'
     svgElement.style.height = '100%'
-    const alignValue = props.align === 'center' ? 'xMidYMid meet' : 'xMinYMin meet'
-    svgElement.setAttribute('preserveAspectRatio', alignValue)
+    svgElement.setAttribute('preserveAspectRatio', 'xMinYMin meet')
 
     svg.value = svgElement.outerHTML
 
