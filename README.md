@@ -47,10 +47,11 @@ Or in your `package.json`:
 
 ## 🧩 Components
 
-This addon provides two complementary components for different use cases:
+This addon provides three complementary components for different use cases:
 
 - **`<Bpmn>`** - Static BPMN rendering for PDFs, presentations, and documentation
 - **`<BpmnTokenSimulation>`** - Interactive token-based process simulation for live demos
+- **`<BpmnModeler>`** - Interactive BPMN modeler for live diagram editing during workshops and trainings
 
 ## 🔧 Component Reference
 
@@ -95,6 +96,32 @@ Renders interactive BPMN diagrams with token simulation capabilities. Perfect fo
 | `height` | `string` | `'auto'` | Height of the diagram container (defaults to 500px when 'auto') |
 
 The token simulation provides interactive controls for stepping through process execution with animated token flow.
+
+### BpmnModeler Component
+
+Embeds an interactive BPMN modeler for live diagram editing. Ideal for workshops, trainings, and collaborative sessions where you build diagrams step by step.
+
+```vue
+<BpmnModeler
+  bpmnFilePath="./my-process.bpmn"
+  width="100%"
+  height="500px"
+/>
+```
+
+Or start with a blank canvas (a single start event):
+
+```vue
+<BpmnModeler height="500px" />
+```
+
+**Props:**
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `bpmnFilePath` | `string` | — | Optional path to a `.bpmn` file (relative to `public/`). Omit for a blank diagram. |
+| `width` | `string` | `'100%'` | Width of the modeler container |
+| `height` | `string` | `'500px'` | Height of the modeler container |
 
 ## 💡 Tips
 

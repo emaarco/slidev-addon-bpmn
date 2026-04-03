@@ -25,9 +25,17 @@ npm run screenshot
 
 ## Architecture
 
-### Core Component
+### Components
 
-The addon consists of a single Vue component at `components/Bpmn.vue` that:
+The addon provides three Vue components:
+
+- **`Bpmn.vue`** — Static SVG rendering (off-screen render approach, best for PDF exports)
+- **`BpmnTokenSimulation.vue`** — Interactive viewer with animated token flow simulation
+- **`BpmnModeler.vue`** — Interactive BPMN modeler for live diagram editing (workshops/trainings)
+
+#### Bpmn.vue (Static Viewer)
+
+The `Bpmn.vue` component at `components/Bpmn.vue`:
 
 1. **Fetches BPMN XML**: Loads `.bpmn` files from the `public/` folder via fetch
 2. **Renders using bpmn-js**: Creates an off-screen DOM container (1920x1080) to render the diagram
@@ -48,7 +56,8 @@ The `vite.config.ts` file is **critical** for this addon to work. It includes bp
 ## Package Distribution
 
 The npm package includes only:
-- `components/` directory (the Bpmn.vue component)
+- `components/` directory (Bpmn.vue, BpmnTokenSimulation.vue, BpmnModeler.vue)
+- `composables/` directory (useBpmn.ts)
 - `vite.config.ts` (required Vite configuration)
 
 Everything else (`example.md`, `public/`, `docs/`) is excluded via the `files` field in package.json.
