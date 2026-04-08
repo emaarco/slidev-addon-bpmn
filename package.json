@@ -17,9 +17,9 @@
     "bpmn-js-token-simulation": "0.39.3"
   },
   "devDependencies": {
-    "@slidev/cli": "52.14.1",
+    "@slidev/cli": "52.14.2",
     "@slidev/theme-default": "0.25.0",
-    "playwright-chromium": "1.59.0"
+    "playwright-chromium": "1.59.1"
   },
   "keywords": [
     "slidev",
