@@ -14,7 +14,7 @@ vi.mock('bpmn-js/lib/Viewer', () => ({
 
 import Bpmn from '../../components/Bpmn.vue'
 
-const SAMPLE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="50" height="50"/></svg>'
+const SAMPLE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="50" height="50"/></svg>'
 
 function mockFetchSuccess(xml = '<definitions></definitions>') {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
@@ -78,7 +78,7 @@ describe('Bpmn.vue', () => {
   })
 
   it('strips script and foreignObject from SVG', async () => {
-    const maliciousSvg = '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script><foreignObject>bad</foreignObject><rect/></svg>'
+    const maliciousSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><script>alert(1)</script><foreignObject>bad</foreignObject><rect/></svg>'
     mockSaveSVG.mockResolvedValue({ svg: maliciousSvg })
     mockFetchSuccess()
 
@@ -91,26 +91,36 @@ describe('Bpmn.vue', () => {
     expect(html).toContain('<rect')
   })
 
-  it('applies custom width and height props to SVG', async () => {
+  it('applies width and height props to wrapper div', async () => {
     mockFetchSuccess()
     const wrapper = mount(Bpmn, {
       props: { bpmnFilePath: 'test.bpmn', width: '800px', height: '600px' },
     })
     await flushPromises()
 
-    const html = wrapper.html()
-    expect(html).toContain('max-width: 800px')
-    expect(html).toContain('height: 600px')
+    const outerDiv = wrapper.find('div').element as HTMLDivElement
+    expect(outerDiv.style.width).toBe('800px')
+    expect(outerDiv.style.height).toBe('600px')
   })
 
-  it('uses default width and height', async () => {
+  it('uses default width and height on wrapper div', async () => {
+    mockFetchSuccess()
+    const wrapper = mount(Bpmn, { props: { bpmnFilePath: 'test.bpmn' } })
+    await flushPromises()
+
+    const outerDiv = wrapper.find('div').element as HTMLDivElement
+    expect(outerDiv.style.width).toBe('100%')
+    expect(outerDiv.style.height).toBe('auto')
+  })
+
+  it('sets SVG to fill container with 100% width and height', async () => {
     mockFetchSuccess()
     const wrapper = mount(Bpmn, { props: { bpmnFilePath: 'test.bpmn' } })
     await flushPromises()
 
     const html = wrapper.html()
-    expect(html).toContain('max-width: 100%')
-    expect(html).toContain('height: auto')
+    expect(html).toContain('width: 100%')
+    expect(html).toContain('height: 100%')
   })
 
   it('sets preserveAspectRatio on the SVG', async () => {
@@ -118,7 +128,18 @@ describe('Bpmn.vue', () => {
     const wrapper = mount(Bpmn, { props: { bpmnFilePath: 'test.bpmn' } })
     await flushPromises()
 
-    expect(wrapper.html()).toContain('preserveAspectRatio="xMidYMid meet"')
+    expect(wrapper.html()).toContain('preserveAspectRatio="xMinYMin meet"')
+  })
+
+  it('expands viewBox with padding', async () => {
+    mockFetchSuccess()
+    const wrapper = mount(Bpmn, { props: { bpmnFilePath: 'test.bpmn' } })
+    await flushPromises()
+
+    const html = wrapper.html()
+    // Original viewBox is "0 0 100 100", pad = 100 * 0.02 = 2
+    // Expected: "-2 -2 104 104"
+    expect(html).toContain('viewBox="-2 -2 104 104"')
   })
 
   it('cleans up off-screen container after render', async () => {
