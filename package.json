@@ -8,7 +8,9 @@
     "build": "slidev build example.md",
     "export": "slidev export example.md",
     "screenshot": "slidev export example.md --format png",
-    "build:pages": "slidev build example.md --base /slidev-addon-bpmn/ --out dist"
+    "build:pages": "slidev build example.md --base /slidev-addon-bpmn/ --out dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "author": "Marco Schäck (https://github.com/emaarco)",
   "license": "MIT",
@@ -19,7 +21,11 @@
   "devDependencies": {
     "@slidev/cli": "52.14.2",
     "@slidev/theme-default": "0.25.0",
-    "playwright-chromium": "1.59.1"
+    "@vitejs/plugin-vue": "6.0.5",
+    "@vue/test-utils": "2.4.6",
+    "jsdom": "26.1.0",
+    "playwright-chromium": "1.59.1",
+    "vitest": "3.2.4"
   },
   "keywords": [
     "slidev",
