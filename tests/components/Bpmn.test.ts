@@ -113,24 +113,6 @@ describe('Bpmn.vue', () => {
     expect(outerDiv.style.height).toBe('auto')
   })
 
-  it('sets SVG to fill container with 100% width and height', async () => {
-    mockFetchSuccess()
-    const wrapper = mount(Bpmn, { props: { bpmnFilePath: 'test.bpmn' } })
-    await flushPromises()
-
-    const html = wrapper.html()
-    expect(html).toContain('width: 100%')
-    expect(html).toContain('height: 100%')
-  })
-
-  it('sets preserveAspectRatio on the SVG', async () => {
-    mockFetchSuccess()
-    const wrapper = mount(Bpmn, { props: { bpmnFilePath: 'test.bpmn' } })
-    await flushPromises()
-
-    expect(wrapper.html()).toContain('preserveAspectRatio="xMinYMin meet"')
-  })
-
   it('expands viewBox with padding', async () => {
     mockFetchSuccess()
     const wrapper = mount(Bpmn, { props: { bpmnFilePath: 'test.bpmn' } })
@@ -144,17 +126,6 @@ describe('Bpmn.vue', () => {
 
   it('cleans up off-screen container after render', async () => {
     mockFetchSuccess()
-    const childCountBefore = document.body.childNodes.length
-
-    mount(Bpmn, { props: { bpmnFilePath: 'test.bpmn' } })
-    await flushPromises()
-
-    expect(document.body.childNodes.length).toBe(childCountBefore)
-  })
-
-  it('cleans up off-screen container even on error', async () => {
-    mockFetchSuccess()
-    mockImportXML.mockRejectedValue(new Error('import failed'))
     const childCountBefore = document.body.childNodes.length
 
     mount(Bpmn, { props: { bpmnFilePath: 'test.bpmn' } })

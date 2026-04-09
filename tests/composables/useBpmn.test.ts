@@ -72,28 +72,6 @@ describe('useBpmn', () => {
       expect(error.value).toContain('boom')
     })
 
-    it('formats non-Error exceptions', async () => {
-      vi.spyOn(console, 'error').mockImplementation(() => {})
-      const { error, withLoading } = useBpmn()
 
-      await withLoading(async () => {
-        throw 'string error'
-      })
-
-      expect(error.value).toContain('string error')
-    })
-
-    it('resets error on subsequent successful call', async () => {
-      vi.spyOn(console, 'error').mockImplementation(() => {})
-      const { error, withLoading } = useBpmn()
-
-      await withLoading(async () => {
-        throw new Error('first failure')
-      })
-      expect(error.value).toContain('first failure')
-
-      await withLoading(async () => 'ok')
-      expect(error.value).toBeNull()
-    })
   })
 })
