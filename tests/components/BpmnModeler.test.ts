@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import { nextTick } from 'vue'
 
 const { mockViewerDestroy, mockImportXML, mockResized, mockZoom, mockGet, MockBpmnViewer } = vi.hoisted(() => ({
   mockViewerDestroy: vi.fn(),
@@ -245,5 +246,91 @@ describe('BpmnModeler.vue', () => {
     mockFetchSuccess()
     const wrapper = mount(BpmnModelerComponent, { props: { bpmnFilePath: 'test.bpmn' } })
     expect(() => wrapper.unmount()).not.toThrow()
+  })
+
+  async function withModelerDimensions<T>(fn: () => Promise<T>): Promise<T> {
+    // Temporarily give all HTMLElements dimensions so waitForContainer resolves
+    // for the teleported modeler container (which has no layout in jsdom)
+    const origClientWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'clientWidth')
+    const origClientHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'clientHeight')
+    Object.defineProperty(HTMLElement.prototype, 'clientWidth', { get: () => 1200, configurable: true })
+    Object.defineProperty(HTMLElement.prototype, 'clientHeight', { get: () => 800, configurable: true })
+    try {
+      return await fn()
+    } finally {
+      if (origClientWidth) Object.defineProperty(HTMLElement.prototype, 'clientWidth', origClientWidth)
+      if (origClientHeight) Object.defineProperty(HTMLElement.prototype, 'clientHeight', origClientHeight)
+    }
+  }
+
+  it('edit button click opens fullscreen modeler', async () => {
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, { props: { bpmnFilePath: 'test.bpmn' } })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    MockBpmnModeler.mockClear()
+    mockImportXML.mockClear()
+
+    await withModelerDimensions(() => (wrapper.vm as any).openFullscreen())
+
+    expect(MockBpmnModeler).toHaveBeenCalled()
+    expect(mockImportXML).toHaveBeenCalledWith('<definitions></definitions>')
+  })
+
+  it('close button saves XML and re-renders viewer when changes were made', async () => {
+    let commandStackChangedCallback: (() => void) | null = null
+    mockGet.mockImplementation((service: string) => {
+      if (service === 'eventBus') {
+        return { on: (_event: string, cb: () => void) => { commandStackChangedCallback = cb } }
+      }
+      return { resized: mockResized, zoom: mockZoom, on: vi.fn() }
+    })
+
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, { props: { bpmnFilePath: 'test.bpmn' } })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    await withModelerDimensions(() => (wrapper.vm as any).openFullscreen())
+
+    expect(commandStackChangedCallback).not.toBeNull()
+
+    // Simulate a diagram change and close the modeler
+    mockSaveXML.mockResolvedValue({ xml: '<definitions>changed</definitions>' })
+    commandStackChangedCallback!()
+
+    mockImportXML.mockClear()
+    await (wrapper.vm as any).closeFullscreen()
+    await flushPromises()
+
+    expect(mockSaveXML).toHaveBeenCalled()
+    expect(mockModelerDestroy).toHaveBeenCalled()
+    expect(mockImportXML).toHaveBeenCalledWith('<definitions>changed</definitions>')
+  })
+
+  it('close button skips saveXML when no changes were made', async () => {
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, { props: { bpmnFilePath: 'test.bpmn' } })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    await withModelerDimensions(() => (wrapper.vm as any).openFullscreen())
+
+    mockSaveXML.mockClear()
+    mockImportXML.mockClear()
+
+    await (wrapper.vm as any).closeFullscreen()
+    await flushPromises()
+
+    expect(mockSaveXML).not.toHaveBeenCalled()
+    expect(mockModelerDestroy).toHaveBeenCalled()
+    expect(mockImportXML).not.toHaveBeenCalled()
   })
 })

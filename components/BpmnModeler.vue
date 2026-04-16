@@ -182,6 +182,8 @@ async function renderBpmn() {
 }
 
 async function openFullscreen() {
+  if (!currentXml.value) return
+
   isFullscreen.value = true
   await nextTick()
   await waitForContainer(modelerContainerRef)
@@ -215,6 +217,8 @@ async function closeFullscreen() {
     await renderViewer()
   }
 }
+
+defineExpose({ openFullscreen, closeFullscreen })
 
 onMounted(async () => {
   await nextTick()
