@@ -33,6 +33,7 @@ No manual export chaos, just saubere process diagrams!
 **Features:**
 - Static rendering for PDFs and presentations
 - Interactive token simulation for process demonstrations
+- Live BPMN modeling for workshops and trainings
 
 ---
 
@@ -49,3 +50,19 @@ The `Bpmn` component renders BPMN diagrams as static SVG images – koa screensh
 The `BpmnTokenSimulation` component adds animated token flow for process demonstrations – the tokens hupfan through your diagram like it's a Mordsgaudi! Your audience kapiert sofort how the workflow flows, koa langweiliges Gschwafel needed!
 
 <BpmnTokenSimulation bpmnFilePath="./newsletter.bpmn" height="350px"></BpmnTokenSimulation>
+
+---
+
+## Interactive BPMN Modeler
+
+The `BpmnModeler` component embeds a full BPMN editor – jetzt kannst du live in der Präsentation modellieren, so richtig gscheid! Perfect for workshops and trainings where you build diagrams step by step with your audience.
+
+<BpmnModeler bpmnFilePath="./newsletter.bpmn" height="400px"></BpmnModeler>
+
+---
+
+## Blank Canvas Modeler
+
+Start from scratch with a blank diagram – just a single start event to get you going. Ideal for live modeling sessions where you build a process together with your audience!
+
+<BpmnModeler height="400px"></BpmnModeler>

@@ -7,6 +7,7 @@ export default defineConfig({
   optimizeDeps: {
     include: [
       'bpmn-js/lib/Viewer',
+      'bpmn-js/lib/Modeler',
       'bpmn-js-token-simulation/lib/viewer',
     ],
   },

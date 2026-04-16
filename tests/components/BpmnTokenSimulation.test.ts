@@ -64,11 +64,13 @@ describe('BpmnTokenSimulation.vue', () => {
 
     mockImportXML.mockResolvedValue(undefined)
     mockGet.mockReturnValue({ resized: mockResized, zoom: mockZoom })
-    MockBpmnViewer.mockImplementation(() => ({
-      importXML: mockImportXML,
-      destroy: mockDestroy,
-      get: mockGet,
-    }))
+    MockBpmnViewer.mockImplementation(function () {
+      return {
+        importXML: mockImportXML,
+        destroy: mockDestroy,
+        get: mockGet,
+      }
+    })
 
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })

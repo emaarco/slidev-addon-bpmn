@@ -39,11 +39,13 @@ describe('Bpmn.vue', () => {
 
     mockImportXML.mockResolvedValue(undefined)
     mockSaveSVG.mockResolvedValue({ svg: SAMPLE_SVG })
-    MockBpmnViewer.mockImplementation(() => ({
-      importXML: mockImportXML,
-      saveSVG: mockSaveSVG,
-      destroy: mockDestroy,
-    }))
+    MockBpmnViewer.mockImplementation(function () {
+      return {
+        importXML: mockImportXML,
+        saveSVG: mockSaveSVG,
+        destroy: mockDestroy,
+      }
+    })
 
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
