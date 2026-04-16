@@ -1,22 +1,99 @@
 <template>
-  <div :style="{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: props.width, height: containerHeight }">
-    <p v-if="loading">Loading BPMN modeler...</p>
+  <div :style="{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: props.width, height: containerHeight }">
+    <p v-if="loading">Loading BPMN diagram...</p>
     <p v-if="error" class="text-red-500">{{ error }}</p>
-    <div ref="containerRef" :style="{
-    width: `calc(${props.width} - ${margin * 2}px)`,
-    height: `calc(${containerHeight} - ${margin * 2}px)`,
-    margin: `${margin}px`,
-  }"
-    ></div>
+
+    <div ref="viewerContainerRef" :style="{
+      width: `calc(${props.width} - ${margin * 2}px)`,
+      height: `calc(${containerHeight} - ${margin * 2}px)`,
+      margin: `${margin}px`,
+    }"></div>
+
+    <button
+      v-if="!loading && !error"
+      :style="{
+        position: 'absolute',
+        top: '12px',
+        right: '12px',
+        zIndex: 10,
+        cursor: 'pointer',
+        background: 'white',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        padding: '6px 8px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+        fontSize: '13px',
+        color: '#333',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+      }"
+      title="Open modeler"
+      @click="openFullscreen"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      Edit
+    </button>
+
+    <Teleport to="body">
+      <div
+        v-if="isFullscreen"
+        :style="{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 9999,
+          background: 'white',
+        }"
+        @keydown.stop
+      >
+        <div ref="modelerContainerRef" :style="{ width: '100%', height: '100%' }"></div>
+
+        <button
+          :style="{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            zIndex: 10000,
+            cursor: 'pointer',
+            background: 'white',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            padding: '6px 8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            fontSize: '13px',
+            color: '#333',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          }"
+          title="Close modeler"
+          @click="closeFullscreen"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Close
+        </button>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
 
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { type Ref, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import BpmnViewer from 'bpmn-js/lib/Viewer'
 import BpmnModeler from 'bpmn-js/lib/Modeler'
 import 'bpmn-js/dist/assets/bpmn-js.css'
 import 'bpmn-js/dist/assets/diagram-js.css'
+import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css'
 import { onSlideEnter } from '@slidev/client'
 import { useBpmn } from '../composables/useBpmn'
 
@@ -24,9 +101,14 @@ const margin = 5
 const containerWaitTimeout = 5000
 
 const { loading, error, fetchBpmnXml, withLoading } = useBpmn()
-const containerRef = ref<HTMLDivElement | null>(null)
+const viewerContainerRef = ref<HTMLDivElement | null>(null)
+const modelerContainerRef = ref<HTMLDivElement | null>(null)
 const isRendered = ref(false)
+const isFullscreen = ref(false)
+const currentXml = ref<string | null>(null)
+let viewer: InstanceType<typeof BpmnViewer> | null = null
 let modeler: InstanceType<typeof BpmnModeler> | null = null
+let hasModelerChanges = false
 
 const props = withDefaults(defineProps<{
   bpmnFilePath?: string
@@ -39,11 +121,7 @@ const props = withDefaults(defineProps<{
 
 const containerHeight = props.height
 
-/**
- * Polls for container dimensions to be ready before rendering.
- * Prevents "non-finite" SVG matrix errors when canvas.zoom() is called.
- */
-async function waitForContainer(): Promise<void> {
+async function waitForContainer(containerRef: Ref<HTMLDivElement | null>): Promise<void> {
   return new Promise((resolve, reject) => {
     const start = Date.now()
     const checkDimensions = () => {
@@ -59,33 +137,43 @@ async function waitForContainer(): Promise<void> {
   })
 }
 
-/**
- * Renders the BPMN modeler.
- * Includes duplicate prevention since Slidev calls both onMounted and onSlideEnter.
- */
-async function renderBpmn() {
+async function renderViewer() {
+  if (viewer) {
+    viewer.destroy()
+    viewer = null
+  }
 
-  // Prevent duplicate rendering
+  await waitForContainer(viewerContainerRef)
+
+  viewer = new BpmnViewer({ container: viewerContainerRef.value! })
+
+  if (!currentXml.value) {
+    if (props.bpmnFilePath) {
+      currentXml.value = await fetchBpmnXml(props.bpmnFilePath)
+    } else {
+      const tempModeler = new BpmnModeler({ container: document.createElement('div') })
+      await tempModeler.createDiagram()
+      const { xml } = await tempModeler.saveXML({ format: true })
+      tempModeler.destroy()
+      if (xml) currentXml.value = xml
+    }
+  }
+
+  if (currentXml.value) {
+    await viewer.importXML(currentXml.value)
+    const canvas = viewer.get('canvas') as any
+    canvas.resized()
+    canvas.zoom('fit-viewport', 'auto')
+    canvas.zoom(Math.min(canvas.zoom() * 0.92, 1), 'auto')
+  }
+}
+
+async function renderBpmn() {
   if (isRendered.value) return
   isRendered.value = true
 
   const result = await withLoading(async () => {
-    await waitForContainer()
-
-    modeler = new BpmnModeler({
-      container: containerRef.value!,
-    })
-
-    if (props.bpmnFilePath) {
-      const bpmnXml = await fetchBpmnXml(props.bpmnFilePath)
-      await modeler.importXML(bpmnXml)
-    } else {
-      await modeler.createDiagram()
-    }
-
-    const canvas = modeler.get('canvas') as any
-    canvas.resized()
-    canvas.zoom('fit-viewport', 'auto')
+    await renderViewer()
   })
 
   if (result === undefined && error.value) {
@@ -93,24 +181,53 @@ async function renderBpmn() {
   }
 }
 
-/**
- * Render on the component mount for PDF export compatibility.
- * In headless export mode, onSlideEnter doesn't fire.
- */
+async function openFullscreen() {
+  isFullscreen.value = true
+  await nextTick()
+  await waitForContainer(modelerContainerRef)
+
+  hasModelerChanges = false
+  modeler = new BpmnModeler({ container: modelerContainerRef.value! })
+
+  await modeler.importXML(currentXml.value!)
+
+  const eventBus = modeler.get('eventBus') as any
+  eventBus.on('commandStack.changed', () => { hasModelerChanges = true })
+  const canvas = modeler.get('canvas') as any
+  canvas.resized()
+  canvas.zoom('fit-viewport', 'auto')
+}
+
+async function closeFullscreen() {
+  if (modeler) {
+    if (hasModelerChanges) {
+      const { xml } = await modeler.saveXML({ format: true })
+      if (xml) currentXml.value = xml
+    }
+    modeler.destroy()
+    modeler = null
+  }
+
+  isFullscreen.value = false
+
+  if (hasModelerChanges) {
+    await nextTick()
+    await renderViewer()
+  }
+}
+
 onMounted(async () => {
   await nextTick()
   await renderBpmn()
 })
 
-/**
- * Render when the slide becomes active in a live preview.
- * Container dimensions are only valid when the slide is visible.
- */
 onSlideEnter(async () => {
   await renderBpmn()
 })
 
 onUnmounted(() => {
+  viewer?.destroy()
+  viewer = null
   modeler?.destroy()
   modeler = null
 })
