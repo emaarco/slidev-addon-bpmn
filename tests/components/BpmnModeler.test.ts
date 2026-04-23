@@ -29,6 +29,20 @@ vi.mock('bpmn-js/lib/Modeler', () => ({
 vi.mock('bpmn-js/dist/assets/bpmn-js.css', () => ({}))
 vi.mock('bpmn-js/dist/assets/diagram-js.css', () => ({}))
 vi.mock('bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css', () => ({}))
+vi.mock('@bpmn-io/properties-panel/dist/assets/properties-panel.css', () => ({}))
+
+vi.mock('../../engines/zeebe', () => ({
+  zeebeEngine: {
+    additionalModules: ['zeebe-mod-a', 'zeebe-mod-b'],
+    moddleExtensions: { zeebe: { tag: 'zeebe-moddle' } },
+  },
+}))
+vi.mock('../../engines/camunda7', () => ({
+  camunda7Engine: {
+    additionalModules: ['c7-mod-a', 'c7-mod-b'],
+    moddleExtensions: { camunda: { tag: 'camunda-moddle' } },
+  },
+}))
 
 const { slideEnterCallbacks } = vi.hoisted(() => ({
   slideEnterCallbacks: [] as Array<() => void>,
@@ -332,5 +346,65 @@ describe('BpmnModeler.vue', () => {
     expect(mockSaveXML).not.toHaveBeenCalled()
     expect(mockModelerDestroy).toHaveBeenCalled()
     expect(mockImportXML).not.toHaveBeenCalled()
+  })
+
+  it('passes only { container } to the modeler when no engine prop is set', async () => {
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, { props: { bpmnFilePath: 'test.bpmn' } })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    MockBpmnModeler.mockClear()
+    await withModelerDimensions(() => (wrapper.vm as any).openFullscreen())
+
+    const options = MockBpmnModeler.mock.calls[0][0]
+    expect(options).toHaveProperty('container')
+    expect(options).not.toHaveProperty('additionalModules')
+    expect(options).not.toHaveProperty('moddleExtensions')
+    expect(options).not.toHaveProperty('propertiesPanel')
+
+    expect(document.querySelector('[ref="propertiesPanelRef"]')).toBeNull()
+  })
+
+  it('engine="zeebe" wires Zeebe modules, moddle and a panel parent', async () => {
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, {
+      props: { bpmnFilePath: 'test.bpmn', engine: 'zeebe' },
+    })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    MockBpmnModeler.mockClear()
+    await withModelerDimensions(() => (wrapper.vm as any).openFullscreen())
+
+    const options = MockBpmnModeler.mock.calls[0][0]
+    expect(options.additionalModules).toEqual(['zeebe-mod-a', 'zeebe-mod-b'])
+    expect(options.moddleExtensions).toEqual({ zeebe: { tag: 'zeebe-moddle' } })
+    expect(options.propertiesPanel).toBeDefined()
+    expect(options.propertiesPanel.parent).toBeInstanceOf(HTMLElement)
+  })
+
+  it('engine="camunda7" wires Camunda Platform modules, moddle and a panel parent', async () => {
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, {
+      props: { bpmnFilePath: 'test.bpmn', engine: 'camunda7' },
+    })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    MockBpmnModeler.mockClear()
+    await withModelerDimensions(() => (wrapper.vm as any).openFullscreen())
+
+    const options = MockBpmnModeler.mock.calls[0][0]
+    expect(options.additionalModules).toEqual(['c7-mod-a', 'c7-mod-b'])
+    expect(options.moddleExtensions).toEqual({ camunda: { tag: 'camunda-moddle' } })
+    expect(options.propertiesPanel).toBeDefined()
+    expect(options.propertiesPanel.parent).toBeInstanceOf(HTMLElement)
   })
 })

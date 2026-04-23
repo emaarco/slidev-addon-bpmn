@@ -31,7 +31,7 @@ The addon provides three Vue components:
 
 - **`Bpmn.vue`** — Static SVG rendering (off-screen render approach, best for PDF exports)
 - **`BpmnTokenSimulation.vue`** — Interactive viewer with animated token flow simulation
-- **`BpmnModeler.vue`** — Interactive BPMN modeler for live diagram editing (workshops/trainings)
+- **`BpmnModeler.vue`** — Interactive BPMN modeler for live diagram editing (workshops/trainings). Accepts an optional `engine` prop (`"zeebe"` | `"camunda7"`) that mounts an engine-specific properties panel side-by-side with the canvas. Engine wiring lives in `engines/zeebe.ts` and `engines/camunda7.ts` — one file per engine (SRP); the component picks one via a small `if` in `resolveEngineConfig()`. Adding a new engine = one new file under `engines/` plus one `if` line.
 
 #### Bpmn.vue (Static Viewer)
 
@@ -58,6 +58,7 @@ The `vite.config.ts` file is **critical** for this addon to work. It includes bp
 The npm package includes only:
 - `components/` directory (Bpmn.vue, BpmnTokenSimulation.vue, BpmnModeler.vue)
 - `composables/` directory (useBpmn.ts)
+- `engines/` directory (types.ts, zeebe.ts, camunda7.ts)
 - `vite.config.ts` (required Vite configuration)
 
 Everything else (`example.md`, `public/`, `docs/`) is excluded via the `files` field in package.json.

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_LoanApproval" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.40.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.21.0">
+  <bpmn:process id="loan-approval" name="Loan Approval" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_LoanRequested" name="Loan&#10;requested">
+      <bpmn:outgoing>Flow_ToScore</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_ScoreApplicant" name="Score applicant" camunda:expression="${scoringService.score(applicantId)}" camunda:resultVariable="score">
+      <bpmn:incoming>Flow_ToScore</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToDecision</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Decision" name="Score&#10;ok?">
+      <bpmn:incoming>Flow_ToDecision</bpmn:incoming>
+      <bpmn:outgoing>Flow_Approved</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Activity_ApproveLoan" name="Approve loan" camunda:assignee="clerk">
+      <bpmn:incoming>Flow_Approved</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToEndApproved</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Approved" name="Loan&#10;approved">
+      <bpmn:incoming>Flow_ToEndApproved</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_Rejected" name="Loan&#10;rejected">
+      <bpmn:incoming>Flow_Rejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_ToScore" sourceRef="StartEvent_LoanRequested" targetRef="Activity_ScoreApplicant" />
+    <bpmn:sequenceFlow id="Flow_ToDecision" sourceRef="Activity_ScoreApplicant" targetRef="Gateway_Decision" />
+    <bpmn:sequenceFlow id="Flow_Approved" name="yes" sourceRef="Gateway_Decision" targetRef="Activity_ApproveLoan">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${score &gt;= 700}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Rejected" name="no" sourceRef="Gateway_Decision" targetRef="EndEvent_Rejected">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${score &lt; 700}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_ToEndApproved" sourceRef="Activity_ApproveLoan" targetRef="EndEvent_Approved" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="loan-approval">
+      <bpmndi:BPMNShape id="StartEvent_LoanRequested_di" bpmnElement="StartEvent_LoanRequested">
+        <dc:Bounds x="172" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="166" y="205" width="49" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ScoreApplicant_di" bpmnElement="Activity_ScoreApplicant">
+        <dc:Bounds x="260" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Decision_di" bpmnElement="Gateway_Decision" isMarkerVisible="true">
+        <dc:Bounds x="415" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="418" y="118" width="44" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ApproveLoan_di" bpmnElement="Activity_ApproveLoan">
+        <dc:Bounds x="520" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Approved_di" bpmnElement="EndEvent_Approved">
+        <dc:Bounds x="682" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="676" y="205" width="49" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Rejected_di" bpmnElement="EndEvent_Rejected">
+        <dc:Bounds x="422" y="272" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="416" y="315" width="49" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToScore_di" bpmnElement="Flow_ToScore">
+        <di:waypoint x="208" y="180" />
+        <di:waypoint x="260" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToDecision_di" bpmnElement="Flow_ToDecision">
+        <di:waypoint x="360" y="180" />
+        <di:waypoint x="415" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Approved_di" bpmnElement="Flow_Approved">
+        <di:waypoint x="465" y="180" />
+        <di:waypoint x="520" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="484" y="162" width="17" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Rejected_di" bpmnElement="Flow_Rejected">
+        <di:waypoint x="440" y="205" />
+        <di:waypoint x="440" y="272" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="446" y="230" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToEndApproved_di" bpmnElement="Flow_ToEndApproved">
+        <di:waypoint x="620" y="180" />
+        <di:waypoint x="682" y="180" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

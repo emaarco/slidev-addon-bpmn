@@ -49,10 +49,22 @@
           height: '100vh',
           zIndex: 9999,
           background: 'white',
+          display: 'flex',
         }"
         @keydown.stop
       >
-        <div ref="modelerContainerRef" :style="{ width: '100%', height: '100%' }"></div>
+        <div ref="modelerContainerRef" :style="{ flex: 1, height: '100%' }"></div>
+        <div
+          v-if="props.engine"
+          ref="propertiesPanelRef"
+          :style="{
+            width: '350px',
+            height: '100%',
+            overflowY: 'auto',
+            borderLeft: '1px solid #ccc',
+            background: '#fafafa',
+          }"
+        ></div>
 
         <button
           :style="{
@@ -94,8 +106,12 @@ import BpmnModeler from 'bpmn-js/lib/Modeler'
 import 'bpmn-js/dist/assets/bpmn-js.css'
 import 'bpmn-js/dist/assets/diagram-js.css'
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css'
+import '@bpmn-io/properties-panel/dist/assets/properties-panel.css'
 import { onSlideEnter } from '@slidev/client'
 import { useBpmn } from '../composables/useBpmn'
+import { zeebeEngine } from '../engines/zeebe'
+import { camunda7Engine } from '../engines/camunda7'
+import type { Engine } from '../engines/types'
 
 const margin = 5
 const containerWaitTimeout = 5000
@@ -103,6 +119,7 @@ const containerWaitTimeout = 5000
 const { loading, error, fetchBpmnXml, withLoading } = useBpmn()
 const viewerContainerRef = ref<HTMLDivElement | null>(null)
 const modelerContainerRef = ref<HTMLDivElement | null>(null)
+const propertiesPanelRef = ref<HTMLDivElement | null>(null)
 const isRendered = ref(false)
 const isFullscreen = ref(false)
 const currentXml = ref<string | null>(null)
@@ -114,10 +131,17 @@ const props = withDefaults(defineProps<{
   bpmnFilePath?: string
   width?: string
   height?: string
+  engine?: Engine
 }>(), {
   width: '100%',
   height: '500px',
 })
+
+function resolveEngineConfig() {
+  if (props.engine === 'zeebe') return zeebeEngine
+  if (props.engine === 'camunda7') return camunda7Engine
+  return null
+}
 
 const containerHeight = props.height
 
@@ -189,7 +213,15 @@ async function openFullscreen() {
   await waitForContainer(modelerContainerRef)
 
   hasModelerChanges = false
-  modeler = new BpmnModeler({ container: modelerContainerRef.value! })
+
+  const config = resolveEngineConfig()
+  const options: any = { container: modelerContainerRef.value! }
+  if (config) {
+    options.propertiesPanel = { parent: propertiesPanelRef.value! }
+    options.additionalModules = config.additionalModules
+    options.moddleExtensions = config.moddleExtensions
+  }
+  modeler = new BpmnModeler(options)
 
   await modeler.importXML(currentXml.value!)
 
