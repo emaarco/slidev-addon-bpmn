@@ -51,7 +51,7 @@ This addon provides three complementary components for different use cases:
 
 - **`<Bpmn>`** - Static BPMN rendering for PDFs, presentations, and documentation
 - **`<BpmnTokenSimulation>`** - Interactive token-based process simulation for live demos
-- **`<BpmnModeler>`** - Interactive BPMN modeler for live diagram editing during workshops and trainings
+- **`<BpmnModeler>`** - Interactive BPMN modeler for live diagram editing during workshops and trainings, with optional Zeebe / Camunda 7 properties panel
 
 ## 🔧 Component Reference
 
@@ -115,6 +115,18 @@ Or start with a blank canvas (a single start event):
 <BpmnModeler height="500px" />
 ```
 
+Pass an `engine` to mount an engine-specific properties panel side-by-side with the canvas, so you can edit Zeebe `taskDefinition`s, Camunda 7 expressions, message names, and other technical attributes live:
+
+```vue
+<!-- Camunda 8 / Zeebe -->
+<BpmnModeler bpmnFilePath="./my-process.bpmn" engine="zeebe" height="500px" />
+
+<!-- Camunda 7 / Platform -->
+<BpmnModeler bpmnFilePath="./my-process.bpmn" engine="camunda7" height="500px" />
+```
+
+In fullscreen mode, the panel can be hidden and shown again via the toolbar — handy when you need the full canvas width.
+
 **Props:**
 
 | Name | Type | Default | Description |
@@ -122,6 +134,7 @@ Or start with a blank canvas (a single start event):
 | `bpmnFilePath` | `string` | — | Optional path to a `.bpmn` file (relative to `public/`). Omit for a blank diagram. |
 | `width` | `string` | `'100%'` | Width of the modeler container |
 | `height` | `string` | `'500px'` | Height of the modeler container |
+| `engine` | `'zeebe' \| 'camunda7'` | — | Optional engine. Mounts a `bpmn-js-properties-panel` configured for the chosen engine. Omit for a panel-less modeler. |
 
 ## 💡 Tips
 
