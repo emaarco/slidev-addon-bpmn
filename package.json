@@ -4,7 +4,7 @@
   "description": "Display BPMN 2.0 diagrams in Slidev presentations",
   "type": "module",
   "scripts": {
-    "dev": "portless run sh -c 'npx slidev example.md --port $PORT --remote --bind 127.0.0.1'",
+    "dev": "portless run sh -c 'npx slidev example.md --port $PORT --remote --bind 127.0.0.1 --open'",
     "build": "slidev build example.md",
     "export": "slidev export example.md",
     "screenshot": "slidev export example.md --format png",
