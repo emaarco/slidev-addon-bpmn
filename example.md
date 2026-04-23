@@ -61,7 +61,7 @@ The `BpmnTokenSimulation` component adds animated token flow for process demonst
 
 Pass `engine="zeebe"` and you get a full properties panel with Zeebe extensions – task definitions, headers, subscriptions, the whole Klumpatsch! Perfekt for workshops targeting Camunda 8 where executable details matter just as much as the shape.
 
-<BpmnModeler bpmnFilePath="./newsletter.bpmn" engine="zeebe" height="400px"></BpmnModeler>
+<BpmnModeler bpmnFilePath="./newsletter.bpmn" engine="zeebe" height="320px"></BpmnModeler>
 
 ---
 
@@ -69,7 +69,7 @@ Pass `engine="zeebe"` and you get a full properties panel with Zeebe extensions 
 
 Für die Camunda-7-Fraktion: `engine="camunda7"` swaps in the Camunda Platform properties panel, so you can wire up expressions, delegate beans and assignees live – ganz ohne Tool-Hopserei.
 
-<BpmnModeler bpmnFilePath="./loan-approval.bpmn" engine="camunda7" height="400px"></BpmnModeler>
+<BpmnModeler bpmnFilePath="./loan-approval.bpmn" engine="camunda7" height="320px"></BpmnModeler>
 
 ---
 
@@ -77,4 +77,4 @@ Für die Camunda-7-Fraktion: `engine="camunda7"` swaps in the Camunda Platform p
 
 No `engine` prop? Dann gibt's nur die Zeichenfläche – a bare modeler for pure structural modeling. Ideal for live sessions where you build a process from scratch with your audience.
 
-<BpmnModeler height="400px"></BpmnModeler>
+<BpmnModeler height="320px"></BpmnModeler>

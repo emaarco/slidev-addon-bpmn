@@ -388,6 +388,25 @@ describe('BpmnModeler.vue', () => {
     expect(options.propertiesPanel.parent).toBeInstanceOf(HTMLElement)
   })
 
+  it('togglePanel flips isPanelOpen and triggers canvas.resized()', async () => {
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, {
+      props: { bpmnFilePath: 'test.bpmn', engine: 'zeebe' },
+    })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    await withModelerDimensions(() => (wrapper.vm as any).openFullscreen())
+
+    mockResized.mockClear()
+    await (wrapper.vm as any).togglePanel()
+    await flushPromises()
+
+    expect(mockResized).toHaveBeenCalled()
+  })
+
   it('engine="camunda7" wires Camunda Platform modules, moddle and a panel parent', async () => {
     mockFetchSuccess()
     const wrapper = mount(BpmnModelerComponent, {
