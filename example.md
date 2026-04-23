@@ -1,3 +1,7 @@
+---
+colorSchema: light
+---
+
 <style>
 h1 {
   color: #335DE4;
