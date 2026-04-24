@@ -14,6 +14,9 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Verify pinned dependencies
+        run: node -e "const p=JSON.parse(require('fs').readFileSync('package.json','utf8'));const d={...p.dependencies,...p.devDependencies};const bad=Object.entries(d).filter(([,v])=>/[\\^~]/.test(v));if(bad.length){console.error('Unpinned versions found:',bad.map(([k,v])=>k+': '+v).join(', '));process.exit(1);}"
+
       - run: npm ci
       - run: npm test
       - run: npm run build
