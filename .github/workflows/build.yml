@@ -14,6 +14,9 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Verify pinned dependencies
+        uses: miragon/pin-npm-dependencies@v1
+
       - run: npm ci
       - run: npm test
       - run: npm run build

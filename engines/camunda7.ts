@@ -4,6 +4,7 @@ import {
   CamundaPlatformPropertiesProviderModule,
 } from 'bpmn-js-properties-panel'
 import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json'
+import CamundaTransactionBoundaries from 'camunda-transaction-boundaries'
 import type { EngineConfig } from './types'
 
 export const camunda7Engine: EngineConfig = {
@@ -11,6 +12,7 @@ export const camunda7Engine: EngineConfig = {
     BpmnPropertiesPanelModule,
     BpmnPropertiesProviderModule,
     CamundaPlatformPropertiesProviderModule,
+    CamundaTransactionBoundaries,
   ],
   moddleExtensions: { camunda: camundaModdle },
 }

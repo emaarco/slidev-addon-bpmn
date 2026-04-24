@@ -408,6 +408,10 @@ describe('BpmnModeler.vue', () => {
   })
 
   it('engine="camunda7" wires Camunda Platform modules, moddle and a panel parent', async () => {
+    mockGet.mockImplementation((service: string) => {
+      if (service === 'transactionBoundaries') return { show: vi.fn() }
+      return { resized: mockResized, zoom: mockZoom, on: vi.fn() }
+    })
     mockFetchSuccess()
     const wrapper = mount(BpmnModelerComponent, {
       props: { bpmnFilePath: 'test.bpmn', engine: 'camunda7' },
