@@ -57,16 +57,24 @@ The `BpmnTokenSimulation` component adds animated token flow for process demonst
 
 ---
 
-## Interactive BPMN Modeler
+## Zeebe Modeler (Camunda 8)
 
-The `BpmnModeler` component embeds a full BPMN editor – jetzt kannst du live in der Präsentation modellieren, so richtig gscheid! Perfect for workshops and trainings where you build diagrams step by step with your audience.
+Pass `engine="zeebe"` and you get a full properties panel with Zeebe extensions – task definitions, headers, subscriptions, the whole Klumpatsch! Perfekt for workshops targeting Camunda 8 where executable details matter just as much as the shape.
 
-<BpmnModeler bpmnFilePath="./newsletter.bpmn" height="400px"></BpmnModeler>
+<BpmnModeler bpmnFilePath="./newsletter.bpmn" engine="zeebe" height="320px"></BpmnModeler>
+
+---
+
+## Camunda 7 Modeler
+
+Für die Camunda-7-Fraktion: `engine="camunda7"` swaps in the Camunda Platform properties panel, so you can wire up expressions, delegate beans and assignees live – ganz ohne Tool-Hopserei.
+
+<BpmnModeler bpmnFilePath="./loan-approval.bpmn" engine="camunda7" height="320px"></BpmnModeler>
 
 ---
 
 ## Blank Canvas Modeler
 
-Start from scratch with a blank diagram – just a single start event to get you going. Ideal for live modeling sessions where you build a process together with your audience!
+No `engine` prop? Dann gibt's nur die Zeichenfläche – a bare modeler for pure structural modeling. Ideal for live sessions where you build a process from scratch with your audience.
 
-<BpmnModeler height="400px"></BpmnModeler>
+<BpmnModeler height="320px"></BpmnModeler>

@@ -49,38 +49,63 @@
           height: '100vh',
           zIndex: 9999,
           background: 'white',
+          display: 'flex',
         }"
         @keydown.stop
       >
-        <div ref="modelerContainerRef" :style="{ width: '100%', height: '100%' }"></div>
+        <div :style="{ flex: 1, height: '100%', position: 'relative' }">
+          <div ref="modelerContainerRef" :style="{ width: '100%', height: '100%' }"></div>
 
-        <button
-          :style="{
+          <div :style="{
             position: 'absolute',
             top: '16px',
             right: '16px',
             zIndex: 10000,
-            cursor: 'pointer',
-            background: 'white',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            padding: '6px 8px',
             display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            fontSize: '13px',
-            color: '#333',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+            gap: '8px',
+          }">
+            <button
+              :style="toolbarBtnStyle"
+              title="Close modeler"
+              @click="closeFullscreen"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Close
+            </button>
+            <button
+              v-if="props.engine"
+              :style="toolbarBtnStyle"
+              :title="isPanelOpen ? 'Hide properties panel' : 'Show properties panel'"
+              @click="togglePanel"
+            >
+              <svg v-if="isPanelOpen" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+              {{ isPanelOpen ? 'Hide panel' : 'Show panel' }}
+            </button>
+          </div>
+        </div>
+
+        <div
+          v-if="props.engine"
+          v-show="isPanelOpen"
+          ref="propertiesPanelRef"
+          :style="{
+            width: '350px',
+            height: '100%',
+            overflowY: 'auto',
+            borderLeft: '1px solid #ccc',
+            background: '#fafafa',
           }"
-          title="Close modeler"
-          @click="closeFullscreen"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-          Close
-        </button>
+        ></div>
       </div>
     </Teleport>
   </div>
@@ -94,17 +119,37 @@ import BpmnModeler from 'bpmn-js/lib/Modeler'
 import 'bpmn-js/dist/assets/bpmn-js.css'
 import 'bpmn-js/dist/assets/diagram-js.css'
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css'
+import '@bpmn-io/properties-panel/dist/assets/properties-panel.css'
 import { onSlideEnter } from '@slidev/client'
 import { useBpmn } from '../composables/useBpmn'
+import { zeebeEngine } from '../engines/zeebe'
+import { camunda7Engine } from '../engines/camunda7'
+import type { Engine } from '../engines/types'
 
 const margin = 5
 const containerWaitTimeout = 5000
 
+const toolbarBtnStyle = {
+  cursor: 'pointer',
+  background: 'white',
+  border: '1px solid #ccc',
+  borderRadius: '4px',
+  padding: '6px 8px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  fontSize: '13px',
+  color: '#333',
+  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+}
+
 const { loading, error, fetchBpmnXml, withLoading } = useBpmn()
 const viewerContainerRef = ref<HTMLDivElement | null>(null)
 const modelerContainerRef = ref<HTMLDivElement | null>(null)
+const propertiesPanelRef = ref<HTMLDivElement | null>(null)
 const isRendered = ref(false)
 const isFullscreen = ref(false)
+const isPanelOpen = ref(true)
 const currentXml = ref<string | null>(null)
 let viewer: InstanceType<typeof BpmnViewer> | null = null
 let modeler: InstanceType<typeof BpmnModeler> | null = null
@@ -114,10 +159,17 @@ const props = withDefaults(defineProps<{
   bpmnFilePath?: string
   width?: string
   height?: string
+  engine?: Engine
 }>(), {
   width: '100%',
   height: '500px',
 })
+
+function resolveEngineConfig() {
+  if (props.engine === 'zeebe') return zeebeEngine
+  if (props.engine === 'camunda7') return camunda7Engine
+  return null
+}
 
 const containerHeight = props.height
 
@@ -189,7 +241,15 @@ async function openFullscreen() {
   await waitForContainer(modelerContainerRef)
 
   hasModelerChanges = false
-  modeler = new BpmnModeler({ container: modelerContainerRef.value! })
+
+  const config = resolveEngineConfig()
+  const options: any = { container: modelerContainerRef.value! }
+  if (config) {
+    options.propertiesPanel = { parent: propertiesPanelRef.value! }
+    options.additionalModules = config.additionalModules
+    options.moddleExtensions = config.moddleExtensions
+  }
+  modeler = new BpmnModeler(options)
 
   await modeler.importXML(currentXml.value!)
 
@@ -211,6 +271,7 @@ async function closeFullscreen() {
   }
 
   isFullscreen.value = false
+  isPanelOpen.value = true
 
   if (hasModelerChanges) {
     await nextTick()
@@ -218,7 +279,16 @@ async function closeFullscreen() {
   }
 }
 
-defineExpose({ openFullscreen, closeFullscreen })
+async function togglePanel() {
+  isPanelOpen.value = !isPanelOpen.value
+  await nextTick()
+  if (modeler) {
+    const canvas = modeler.get('canvas') as any
+    canvas.resized()
+  }
+}
+
+defineExpose({ openFullscreen, closeFullscreen, togglePanel })
 
 onMounted(async () => {
   await nextTick()
