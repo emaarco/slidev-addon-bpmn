@@ -258,6 +258,11 @@ async function openFullscreen() {
   const canvas = modeler.get('canvas') as any
   canvas.resized()
   canvas.zoom('fit-viewport', 'auto')
+
+  if (props.engine === 'camunda7') {
+    const transactionBoundaries = modeler.get('transactionBoundaries') as any
+    transactionBoundaries.show()
+  }
 }
 
 async function closeFullscreen() {
