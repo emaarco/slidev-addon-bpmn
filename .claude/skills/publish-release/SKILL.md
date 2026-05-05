@@ -17,53 +17,72 @@ Create a new release for `slidev-addon-bpmn`$ARGUMENTS.
 
 After receiving approval, verify:
 - Working directory is clean: `git status`
-- You are on the `main` branch
 - All changes are tested and committed
 
-## Standard Release Workflow (Automated via GitHub Actions)
+> Note: You do **not** need to be on `main`. The release commit is made on the current branch, merged into main via a PR with automerge.
 
-When a GitHub release is published (draft=false), the GitHub Action automatically runs `npm publish` using OIDC authentication.
+## Standard Release Workflow
 
 ### 1. Bump Version
 
-If the version wasn't already updated, you can bump it using `npm version`. You can find out whether it was already updated or not, by checking the most recent releases and comparing the version numbers. If you aren't sure, ask for response.
+Check recent releases to determine whether the version was already bumped since the last release. If not, bump it:
 
 ```bash
 # Bug fixes (1.0.0 → 1.0.1)
-npm version patch
+npm version patch -m "chore(release): v%s" --no-git-tag-version
 
 # New features (1.0.0 → 1.1.0)
-npm version minor
+npm version minor -m "chore(release): v%s" --no-git-tag-version
 
 # Breaking changes (1.0.0 → 2.0.0)
-npm version major
+npm version major -m "chore(release): v%s" --no-git-tag-version
 ```
 
-Use a semantic commit message: `npm version patch -m "chore(release): v%s"`
+Use `--no-git-tag-version` to skip the automatic git tag — the tag is created later from the GitHub release.
 
-This updates `package.json`, creates a git commit, and creates a git tag (requires a clean git repo). Use `--no-git-tag-version` to skip git operations if needed.
-
-### 2. Push to GitHub
-
-If you have updated the version, push the changes to GitHub. If not, you can skip this step.
+Commit the version bump manually:
 
 ```bash
-git push
-git push --tags
+git add package.json package-lock.json
+git commit -m "chore(release): v<VERSION>"
 ```
+
+### 2. Push Branch and Open PR with Automerge
+
+Push the current branch and open a PR targeting `main`. Enable automerge so it lands without manual intervention:
+
+```bash
+git push -u origin HEAD
+
+gh pr create \
+  --base main \
+  --title "chore(release): v<VERSION>" \
+  --body "Bump version to v<VERSION> and trigger release." \
+  --label "automerge"
+
+gh pr merge --auto --squash
+```
+
+> If the repo requires status checks, automerge will wait for them to pass before merging.
 
 ### 3. Create a Draft Release
 
-Check previous releases to guide the release notes format, then create the draft:
+Check previous releases to guide the release notes format:
 
 ```bash
 gh release list --limit 5
+gh release view v<PREV>
+```
+
+Then create the draft, pointing at the version tag that will be created once the PR merges and is tagged:
+
+```bash
 gh release create v<VERSION> --title "v<VERSION>" --notes "..." --draft
 ```
 
 ### 4. Done
 
-A maintainer will review and publish the draft. 
+A maintainer reviews and publishes the draft (or it publishes automatically if configured).
 Publishing the release triggers the GitHub Action to run `npm publish` automatically.
 
 ## Release Notes Format
