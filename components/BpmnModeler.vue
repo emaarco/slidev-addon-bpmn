@@ -3,40 +3,26 @@
     <p v-if="loading">Loading BPMN diagram...</p>
     <p v-if="error" class="text-red-500">{{ error }}</p>
 
-    <div ref="viewerContainerRef" :style="{
+    <div ref="viewerContainerRef" class="bpmn-modeler-container" :style="{
       width: `calc(${props.width} - ${margin * 2}px)`,
       height: `calc(${containerHeight} - ${margin * 2}px)`,
       margin: `${margin}px`,
     }"></div>
 
-    <button
+    <ToolbarButton
       v-if="!loading && !error"
-      :style="{
-        position: 'absolute',
-        top: '12px',
-        right: '12px',
-        zIndex: 10,
-        cursor: 'pointer',
-        background: 'white',
-        border: '1px solid #ccc',
-        borderRadius: '4px',
-        padding: '6px 8px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '4px',
-        fontSize: '13px',
-        color: '#333',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-      }"
       title="Open modeler"
+      label="Edit"
+      :position="{ top: '12px', right: '12px', zIndex: 10 }"
       @click="openFullscreen"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-      </svg>
-      Edit
-    </button>
+      <template #icon>
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </template>
+    </ToolbarButton>
 
     <Teleport to="body">
       <div
@@ -66,31 +52,33 @@
             alignItems: 'stretch',
             gap: '8px',
           }">
-            <button
-              :style="toolbarBtnStyle"
+            <ToolbarButton
               title="Close modeler"
+              label="Close"
               @click="closeFullscreen"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-              Close
-            </button>
-            <button
+              <template #icon>
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </template>
+            </ToolbarButton>
+            <ToolbarButton
               v-if="props.engine"
-              :style="toolbarBtnStyle"
               :title="isPanelOpen ? 'Hide properties panel' : 'Show properties panel'"
+              :label="isPanelOpen ? 'Hide panel' : 'Show panel'"
               @click="togglePanel"
             >
-              <svg v-if="isPanelOpen" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-              </svg>
-              {{ isPanelOpen ? 'Hide panel' : 'Show panel' }}
-            </button>
+              <template #icon>
+                <svg v-if="isPanelOpen" xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+              </template>
+            </ToolbarButton>
           </div>
         </div>
 
@@ -125,23 +113,11 @@ import { useBpmn } from '../composables/useBpmn'
 import { zeebeEngine } from '../engines/zeebe'
 import { camunda7Engine } from '../engines/camunda7'
 import type { Engine } from '../engines/types'
+import { fitDiagram } from '../internal/fitDiagram'
+import ToolbarButton from '../internal/ToolbarButton.vue'
 
 const margin = 5
 const containerWaitTimeout = 5000
-
-const toolbarBtnStyle = {
-  cursor: 'pointer',
-  background: 'white',
-  border: '1px solid #ccc',
-  borderRadius: '4px',
-  padding: '6px 8px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '4px',
-  fontSize: '13px',
-  color: '#333',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-}
 
 const { loading, error, fetchBpmnXml, withLoading } = useBpmn()
 const viewerContainerRef = ref<HTMLDivElement | null>(null)
@@ -173,14 +149,14 @@ function resolveEngineConfig() {
 
 const containerHeight = props.height
 
-async function waitForContainer(containerRef: Ref<HTMLDivElement | null>): Promise<void> {
-  return new Promise((resolve, reject) => {
+async function waitForContainer(containerRef: Ref<HTMLDivElement | null>): Promise<boolean> {
+  return new Promise((resolve) => {
     const start = Date.now()
     const checkDimensions = () => {
       if (containerRef.value && containerRef.value.clientWidth > 0 && containerRef.value.clientHeight > 0) {
-        resolve()
+        resolve(true)
       } else if (Date.now() - start > containerWaitTimeout) {
-        reject(new Error('Container dimensions not available within timeout'))
+        resolve(false)
       } else {
         requestAnimationFrame(checkDimensions)
       }
@@ -189,13 +165,14 @@ async function waitForContainer(containerRef: Ref<HTMLDivElement | null>): Promi
   })
 }
 
-async function renderViewer() {
+async function renderViewer(): Promise<boolean> {
   if (viewer) {
     viewer.destroy()
     viewer = null
   }
 
-  await waitForContainer(viewerContainerRef)
+  const ready = await waitForContainer(viewerContainerRef)
+  if (!ready) return false
 
   viewer = new BpmnViewer({ container: viewerContainerRef.value! })
 
@@ -215,9 +192,9 @@ async function renderViewer() {
     await viewer.importXML(currentXml.value)
     const canvas = viewer.get('canvas') as any
     canvas.resized()
-    canvas.zoom('fit-viewport', 'auto')
-    canvas.zoom(Math.min(canvas.zoom() * 0.92, 1), 'auto')
+    fitDiagram(canvas)
   }
+  return true
 }
 
 async function renderBpmn() {
@@ -225,10 +202,12 @@ async function renderBpmn() {
   isRendered.value = true
 
   const result = await withLoading(async () => {
-    await renderViewer()
+    return renderViewer()
   })
 
-  if (result === undefined && error.value) {
+  // result === false → container hidden (preload). Reset guard so onSlideEnter retries.
+  // result === undefined → withLoading caught a real error.
+  if (result === false || (result === undefined && error.value)) {
     isRendered.value = false
   }
 }
@@ -257,7 +236,7 @@ async function openFullscreen() {
   eventBus.on('commandStack.changed', () => { hasModelerChanges = true })
   const canvas = modeler.get('canvas') as any
   canvas.resized()
-  canvas.zoom('fit-viewport', 'auto')
+  fitDiagram(canvas)
 
   if (props.engine === 'camunda7') {
     const transactionBoundaries = modeler.get('transactionBoundaries') as any
@@ -312,3 +291,13 @@ onUnmounted(() => {
 })
 
 </script>
+
+<style scoped>
+/* bpmn-js watermark anchored bottom-right; shrink so it stays subordinate in
+   small tiles. The fullscreen overlay uses its own viewer instance and is not
+   targeted by this scoped rule. */
+.bpmn-modeler-container :deep(.bjs-powered-by) {
+  transform: scale(0.7);
+  transform-origin: bottom right;
+}
+</style>

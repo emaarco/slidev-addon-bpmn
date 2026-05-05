@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
-const { mockDestroy, mockImportXML, mockResized, mockZoom, mockGet, MockBpmnViewer } = vi.hoisted(() => ({
+const { mockDestroy, mockImportXML, mockResized, mockViewbox, mockGet, MockBpmnViewer } = vi.hoisted(() => ({
   mockDestroy: vi.fn(),
   mockImportXML: vi.fn(),
   mockResized: vi.fn(),
-  mockZoom: vi.fn(),
+  mockViewbox: vi.fn(),
   mockGet: vi.fn(),
   MockBpmnViewer: vi.fn(),
 }))
@@ -58,12 +58,21 @@ describe('BpmnTokenSimulation.vue', () => {
     mockDestroy.mockClear()
     mockImportXML.mockClear()
     mockResized.mockClear()
-    mockZoom.mockClear()
+    mockViewbox.mockClear()
     mockGet.mockClear()
     MockBpmnViewer.mockClear()
 
     mockImportXML.mockResolvedValue(undefined)
-    mockGet.mockReturnValue({ resized: mockResized, zoom: mockZoom })
+    // Default viewbox getter returns a sensible inner bbox so fitDiagram has something
+    // to work with; tests that assert on the setter inspect the most recent call.
+    mockViewbox.mockImplementation((box?: unknown) => {
+      if (box) return undefined
+      return {
+        inner: { x: 0, y: 0, width: 1000, height: 500 },
+        outer: { width: 800, height: 500 },
+      }
+    })
+    mockGet.mockReturnValue({ resized: mockResized, viewbox: mockViewbox })
     MockBpmnViewer.mockImplementation(function () {
       return {
         importXML: mockImportXML,
@@ -112,10 +121,19 @@ describe('BpmnTokenSimulation.vue', () => {
 
     expect(mockImportXML).toHaveBeenCalled()
     expect(mockResized).toHaveBeenCalled()
-    expect(mockZoom).toHaveBeenCalledWith('fit-viewport', 'auto')
+    // fitDiagram() fires a getter call (no args) and one setter call carrying the
+    // padded viewbox object.
+    const setterCalls = mockViewbox.mock.calls.filter((args) => args.length === 1 && typeof args[0] === 'object')
+    expect(setterCalls.length).toBeGreaterThanOrEqual(1)
+    expect(setterCalls[0][0]).toMatchObject({
+      x: expect.any(Number),
+      y: expect.any(Number),
+      width: expect.any(Number),
+      height: expect.any(Number),
+    })
   })
 
-  it('shows error when container dimensions timeout', async () => {
+  it('bails silently when container dimensions never arrive (Slidev preload)', async () => {
     vi.useFakeTimers()
     mockFetchSuccess()
     const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
@@ -123,7 +141,10 @@ describe('BpmnTokenSimulation.vue', () => {
     await vi.advanceTimersByTimeAsync(6000)
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Container dimensions not available within timeout')
+    // No error message surfaced; no viewer constructed.
+    expect(wrapper.text()).not.toContain('Container dimensions not available within timeout')
+    expect(wrapper.text()).not.toContain('Failed to load BPMN')
+    expect(MockBpmnViewer).not.toHaveBeenCalled()
   })
 
   it('prevents duplicate rendering', async () => {
@@ -146,15 +167,14 @@ describe('BpmnTokenSimulation.vue', () => {
     expect(MockBpmnViewer.mock.calls.length).toBe(callCountAfterMount)
   })
 
-  it('allows retry after error', async () => {
+  it('renders on slide-enter after onMounted bailed (preloaded then visible)', async () => {
     vi.useFakeTimers()
     mockFetchSuccess()
     const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
 
     await vi.advanceTimersByTimeAsync(6000)
     await flushPromises()
-
-    expect(wrapper.text()).toContain('Failed to load BPMN')
+    expect(MockBpmnViewer).not.toHaveBeenCalled()
 
     giveContainerDimensions(wrapper)
 
