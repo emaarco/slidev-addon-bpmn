@@ -47,6 +47,7 @@
     "components",
     "composables",
     "engines",
+    "internal",
     "vite.config.ts"
   ],
   "sideEffects": [

@@ -2,32 +2,6 @@
 colorSchema: light
 ---
 
-<style>
-h1 {
-  color: #335DE4;
-  font-weight: bold;
-  margin-bottom: 0;
-}
-
-h2 {
-  color: #1E3A8A;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-p {
-  color: #6b7280;
-  margin-bottom: 1rem;
-}
-
-code {
-  color: #9333ea;
-  background: #f3f4f6;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-</style>
-
 # slidev-addon-bpmn
 
 Embed your BPMN models präzise and gscheit 🥨 – because screenshot Gefrickel is just zwider.
@@ -54,6 +28,32 @@ The `Bpmn` component renders BPMN diagrams as static SVG images – koa screensh
 The `BpmnTokenSimulation` component adds animated token flow for process demonstrations – the tokens hupfan through your diagram like it's a Mordsgaudi! Your audience kapiert sofort how the workflow flows, koa langweiliges Gschwafel needed!
 
 <BpmnTokenSimulation bpmnFilePath="./newsletter.bpmn" height="350px"></BpmnTokenSimulation>
+
+---
+
+## Komponenten Side-by-Side
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1.5rem;">
+  <div class="tile">
+    <h4 class="tile-header">Static</h4>
+    <div class="tile-card">
+      <Bpmn bpmnFilePath="./newsletter.bpmn" height="170px"></Bpmn>
+    </div>
+  </div>
+  <div class="tile">
+    <h4 class="tile-header">Token Simulation</h4>
+    <div class="tile-card">
+      <BpmnTokenSimulation bpmnFilePath="./newsletter.bpmn" height="170px"></BpmnTokenSimulation>
+    </div>
+  </div>
+  <div class="tile">
+    <h4 class="tile-header">Modeler</h4>
+    <div class="tile-card">
+      <BpmnModeler bpmnFilePath="./loan-approval.bpmn" engine="camunda7" height="170px"></BpmnModeler>
+    </div>
+  </div>
+  <div></div>
+</div>
 
 ---
 

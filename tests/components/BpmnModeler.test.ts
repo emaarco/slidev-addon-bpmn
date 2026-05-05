@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 
-const { mockViewerDestroy, mockImportXML, mockResized, mockZoom, mockGet, MockBpmnViewer } = vi.hoisted(() => ({
+const { mockViewerDestroy, mockImportXML, mockResized, mockViewbox, mockGet, MockBpmnViewer } = vi.hoisted(() => ({
   mockViewerDestroy: vi.fn(),
   mockImportXML: vi.fn(),
   mockResized: vi.fn(),
-  mockZoom: vi.fn(),
+  mockViewbox: vi.fn(),
   mockGet: vi.fn(),
   MockBpmnViewer: vi.fn(),
 }))
@@ -84,7 +84,7 @@ describe('BpmnModeler.vue', () => {
     mockViewerDestroy.mockClear()
     mockImportXML.mockClear()
     mockResized.mockClear()
-    mockZoom.mockClear()
+    mockViewbox.mockClear()
     mockGet.mockClear()
     MockBpmnViewer.mockClear()
     mockModelerDestroy.mockClear()
@@ -95,7 +95,16 @@ describe('BpmnModeler.vue', () => {
     mockImportXML.mockResolvedValue(undefined)
     mockCreateDiagram.mockResolvedValue(undefined)
     mockSaveXML.mockResolvedValue({ xml: '<definitions></definitions>' })
-    mockGet.mockReturnValue({ resized: mockResized, zoom: mockZoom, on: vi.fn() })
+    // Default viewbox getter returns a sensible inner bbox; setter calls capture
+    // the resulting fitDiagram payload for assertions below.
+    mockViewbox.mockImplementation((box?: unknown) => {
+      if (box) return undefined
+      return {
+        inner: { x: 0, y: 0, width: 1000, height: 500 },
+        outer: { width: 800, height: 500 },
+      }
+    })
+    mockGet.mockReturnValue({ resized: mockResized, viewbox: mockViewbox, on: vi.fn() })
     MockBpmnViewer.mockImplementation(function () {
       return {
         importXML: mockImportXML,
@@ -154,22 +163,16 @@ describe('BpmnModeler.vue', () => {
     expect(MockBpmnViewer).toHaveBeenCalled()
     expect(mockImportXML).toHaveBeenCalled()
     expect(mockResized).toHaveBeenCalled()
-    expect(mockZoom).toHaveBeenCalledWith('fit-viewport', 'auto')
-  })
-
-  it('applies 0.92 zoom factor after fit-viewport', async () => {
-    mockZoom.mockReturnValue(1.0)
-    mockFetchSuccess()
-    const wrapper = mount(BpmnModelerComponent, { props: { bpmnFilePath: 'test.bpmn' } })
-    giveContainerDimensions(wrapper)
-
-    await new Promise(resolve => setTimeout(resolve, 50))
-    await flushPromises()
-
-    expect(mockZoom).toHaveBeenCalledWith(expect.any(Number), 'auto')
-    const zoomCalls = mockZoom.mock.calls
-    const secondZoomArg = zoomCalls[zoomCalls.length - 1][0]
-    expect(secondZoomArg).toBeCloseTo(0.92, 1)
+    // fitDiagram() runs after import: one getter call (no args) plus one setter
+    // call carrying the padded viewbox object.
+    const setterCalls = mockViewbox.mock.calls.filter((args) => args.length === 1 && typeof args[0] === 'object')
+    expect(setterCalls.length).toBeGreaterThanOrEqual(1)
+    expect(setterCalls[0][0]).toMatchObject({
+      x: expect.any(Number),
+      y: expect.any(Number),
+      width: expect.any(Number),
+      height: expect.any(Number),
+    })
   })
 
   it('shows edit button after successful load', async () => {
@@ -202,7 +205,7 @@ describe('BpmnModeler.vue', () => {
     expect(MockBpmnViewer).toHaveBeenCalled()
   })
 
-  it('shows error when container dimensions timeout', async () => {
+  it('bails silently when container dimensions never arrive (Slidev preload)', async () => {
     vi.useFakeTimers()
     mockFetchSuccess()
     const wrapper = mount(BpmnModelerComponent, { props: { bpmnFilePath: 'test.bpmn' } })
@@ -210,7 +213,9 @@ describe('BpmnModeler.vue', () => {
     await vi.advanceTimersByTimeAsync(6000)
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Container dimensions not available within timeout')
+    expect(wrapper.text()).not.toContain('Container dimensions not available within timeout')
+    expect(wrapper.text()).not.toContain('Failed to load BPMN')
+    expect(MockBpmnViewer).not.toHaveBeenCalled()
   })
 
   it('prevents duplicate rendering', async () => {
@@ -300,7 +305,7 @@ describe('BpmnModeler.vue', () => {
       if (service === 'eventBus') {
         return { on: (_event: string, cb: () => void) => { commandStackChangedCallback = cb } }
       }
-      return { resized: mockResized, zoom: mockZoom, on: vi.fn() }
+      return { resized: mockResized, viewbox: mockViewbox, on: vi.fn() }
     })
 
     mockFetchSuccess()
@@ -410,7 +415,7 @@ describe('BpmnModeler.vue', () => {
   it('engine="camunda7" wires Camunda Platform modules, moddle and a panel parent', async () => {
     mockGet.mockImplementation((service: string) => {
       if (service === 'transactionBoundaries') return { show: vi.fn() }
-      return { resized: mockResized, zoom: mockZoom, on: vi.fn() }
+      return { resized: mockResized, viewbox: mockViewbox, on: vi.fn() }
     })
     mockFetchSuccess()
     const wrapper = mount(BpmnModelerComponent, {

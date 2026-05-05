@@ -1,57 +1,124 @@
 <template>
-  <div :style="{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: props.width, height: containerHeight }">
+  <div :style="{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: props.width, height: containerHeight }">
     <p v-if="loading">Loading BPMN diagram...</p>
     <p v-if="error" class="text-red-500">{{ error }}</p>
-    <div ref="containerRef" :style="{
+    <div ref="containerRef" class="bpmn-token-simulation-container" :style="{
     width: `calc(${props.width} - ${margin * 2}px)`,
     height: `calc(${containerHeight} - ${margin * 2}px)`,
     margin: `${margin}px`,
   }"
     ></div>
+
+    <ToolbarButton
+      v-if="props.fullscreen && !loading && !error"
+      title="Open in fullscreen"
+      label="Expand"
+      :position="{ top: '12px', right: '12px', zIndex: 10 }"
+      @click="openFullscreen"
+    >
+      <template #icon>
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 3 21 3 21 9"/>
+          <polyline points="9 21 3 21 3 15"/>
+          <line x1="21" y1="3" x2="14" y2="10"/>
+          <line x1="3" y1="21" x2="10" y2="14"/>
+        </svg>
+      </template>
+    </ToolbarButton>
+
+    <Teleport to="body">
+      <div
+        v-if="isFullscreen"
+        :style="{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 9999,
+          background: 'white',
+          display: 'flex',
+        }"
+        @keydown.stop
+      >
+        <div :style="{ flex: 1, height: '100%', position: 'relative' }">
+          <div ref="fullscreenContainerRef" :style="{ width: '100%', height: '100%' }"></div>
+
+          <ToolbarButton
+            title="Close fullscreen"
+            label="Close"
+            :position="{ top: '16px', right: '16px', zIndex: 10000 }"
+            @click="closeFullscreen"
+          >
+            <template #icon>
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </template>
+          </ToolbarButton>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
 
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { type Ref, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import BpmnViewer from 'bpmn-js/lib/Viewer'
 import 'bpmn-js/dist/assets/bpmn-js.css'
 import tokenSimulation from 'bpmn-js-token-simulation/lib/viewer'
 import { onSlideEnter } from '@slidev/client'
 import 'bpmn-js-token-simulation/assets/css/bpmn-js-token-simulation.css'
 import { useBpmn } from '../composables/useBpmn'
+import { fitDiagram } from '../internal/fitDiagram'
+import ToolbarButton from '../internal/ToolbarButton.vue'
 
 const margin = 5
 const containerWaitTimeout = 5000
 
 const { loading, error, fetchBpmnXml, withLoading } = useBpmn()
 const containerRef = ref<HTMLDivElement | null>(null)
+const fullscreenContainerRef = ref<HTMLDivElement | null>(null)
 const isRendered = ref(false)
+const isFullscreen = ref(false)
+const currentXml = ref<string | null>(null)
 let viewer: InstanceType<typeof BpmnViewer> | null = null
+let fullscreenViewer: InstanceType<typeof BpmnViewer> | null = null
+let resizeObserver: ResizeObserver | null = null
+
+// Toggle pill (.bts-toggle-mode) ships at a fixed pixel size; on small panes it dominates
+// the diagram. Scale linearly toward this reference width, never grow past native size.
+const toggleScaleReferenceWidth = 600
+const toggleScaleFloor = 0.5
 
 const props = withDefaults(defineProps<{
   bpmnFilePath: string
   width?: string
   height?: string
+  fullscreen?: boolean
 }>(), {
   width: '100%',
   height: 'auto',
+  fullscreen: true,
 })
 
 const containerHeight = props.height === 'auto' ? '500px' : props.height
 
 /**
  * Polls for container dimensions to be ready before rendering.
- * Prevents "non-finite" SVG matrix errors when canvas.zoom() is called.
+ * Returns false (not throwing) when dimensions never arrive — this is the normal
+ * state for Slidev-preloaded but hidden slides; onSlideEnter retries when visible.
  */
-async function waitForContainer(): Promise<void> {
-  return new Promise((resolve, reject) => {
+async function waitForContainer(target: Ref<HTMLDivElement | null>): Promise<boolean> {
+  return new Promise((resolve) => {
     const start = Date.now()
     const checkDimensions = () => {
-      if (containerRef.value && containerRef.value.clientWidth > 0 && containerRef.value.clientHeight > 0) {
-        resolve()
+      if (target.value && target.value.clientWidth > 0 && target.value.clientHeight > 0) {
+        resolve(true)
       } else if (Date.now() - start > containerWaitTimeout) {
-        reject(new Error('Container dimensions not available within timeout'))
+        resolve(false)
       } else {
         requestAnimationFrame(checkDimensions)
       }
@@ -70,26 +137,75 @@ async function renderBpmn() {
   if (isRendered.value) return
   isRendered.value = true
 
+  const ready = await waitForContainer(containerRef)
+  if (!ready) {
+    // Slide is still hidden (preload). Reset the guard so onSlideEnter can retry.
+    isRendered.value = false
+    return
+  }
+
   const result = await withLoading(async () => {
-    await waitForContainer()
-    const bpmnXml = await fetchBpmnXml(props.bpmnFilePath)
+    if (!currentXml.value) {
+      currentXml.value = await fetchBpmnXml(props.bpmnFilePath)
+    }
 
-    const disableSnackbarModule = {notifications: ['value', {showNotification: () => {}}]}
-    viewer = new BpmnViewer({
-      container: containerRef.value!,
-      additionalModules: [tokenSimulation, disableSnackbarModule]
-    })
-
-    await viewer.importXML(bpmnXml)
+    viewer = createSimulationViewer(containerRef.value!)
+    await viewer.importXML(currentXml.value!)
 
     const canvas = viewer.get('canvas') as any
     canvas.resized()
-    canvas.zoom('fit-viewport', 'auto')
+    fitDiagram(canvas)
+
+    observeContainerForToggleScale()
   })
 
   if (result === undefined && error.value) {
     isRendered.value = false
   }
+}
+
+function createSimulationViewer(container: HTMLDivElement): InstanceType<typeof BpmnViewer> {
+  const disableSnackbarModule = {notifications: ['value', {showNotification: () => {}}]}
+  return new BpmnViewer({
+    container,
+    additionalModules: [tokenSimulation, disableSnackbarModule],
+  })
+}
+
+async function openFullscreen() {
+  if (!currentXml.value) return
+  isFullscreen.value = true
+  await nextTick()
+  await waitForContainer(fullscreenContainerRef)
+
+  fullscreenViewer = createSimulationViewer(fullscreenContainerRef.value!)
+  await fullscreenViewer.importXML(currentXml.value)
+  const canvas = fullscreenViewer.get('canvas') as any
+  canvas.resized()
+  fitDiagram(canvas)
+}
+
+function closeFullscreen() {
+  fullscreenViewer?.destroy()
+  fullscreenViewer = null
+  isFullscreen.value = false
+}
+
+defineExpose({ openFullscreen, closeFullscreen })
+
+function observeContainerForToggleScale() {
+  if (!containerRef.value) return
+  const target = containerRef.value
+  const apply = (width: number) => {
+    const scale = Math.max(toggleScaleFloor, Math.min(1, width / toggleScaleReferenceWidth))
+    target.style.setProperty('--bts-toggle-scale', String(scale))
+  }
+  apply(target.clientWidth)
+  if (typeof ResizeObserver === 'undefined') return
+  resizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) apply(entry.contentRect.width)
+  })
+  resizeObserver.observe(target)
 }
 
 /**
@@ -110,8 +226,34 @@ onSlideEnter(async () => {
 })
 
 onUnmounted(() => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
   viewer?.destroy()
   viewer = null
+  fullscreenViewer?.destroy()
+  fullscreenViewer = null
 })
 
 </script>
+
+<style scoped>
+.bpmn-token-simulation-container :deep(.bts-toggle-mode),
+.bpmn-token-simulation-container :deep(.bts-palette),
+.bpmn-token-simulation-container :deep(.bts-scopes) {
+  transform: scale(var(--bts-toggle-scale, 1));
+  transform-origin: top left;
+}
+
+/* Bottom-centred speed selector: keep upstream's translate(-50%, 0) and compose
+   with scale anchored to the element's bottom-centre so centring is preserved. */
+.bpmn-token-simulation-container :deep(.bts-set-animation-speed) {
+  transform: translate(-50%, 0) scale(var(--bts-toggle-scale, 1));
+  transform-origin: 50% 100%;
+}
+
+/* bpmn-js watermark anchored bottom-right; scale alongside the simulation chrome. */
+.bpmn-token-simulation-container :deep(.bjs-powered-by) {
+  transform: scale(var(--bts-toggle-scale, 1));
+  transform-origin: bottom right;
+}
+</style>
