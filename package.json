@@ -15,8 +15,8 @@
   "author": "Marco Schäck (https://github.com/emaarco)",
   "license": "MIT",
   "dependencies": {
-    "@bpmn-io/properties-panel": "3.41.2",
-    "bpmn-js": "18.15.0",
+    "@bpmn-io/properties-panel": "3.41.3",
+    "bpmn-js": "18.16.1",
     "bpmn-js-properties-panel": "5.54.0",
     "bpmn-js-token-simulation": "0.39.3",
     "camunda-bpmn-js-behaviors": "1.14.1",
@@ -25,11 +25,11 @@
     "zeebe-bpmn-moddle": "1.13.0"
   },
   "devDependencies": {
-    "@slidev/cli": "52.15.0",
+    "@slidev/cli": "52.15.1",
     "@slidev/theme-default": "0.25.0",
     "@vitejs/plugin-vue": "6.0.6",
-    "@vue/test-utils": "2.4.9",
-    "jsdom": "29.1.0",
+    "@vue/test-utils": "2.4.10",
+    "jsdom": "29.1.1",
     "playwright-chromium": "1.59.1",
     "vitest": "4.1.5"
   },
