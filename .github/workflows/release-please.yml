@@ -1,0 +1,47 @@
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview the release PR / GitHub Release without creating them"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Run release-please (release PR)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx --yes release-please@latest release-pr \
+            --token="$GITHUB_TOKEN" \
+            --repo-url="${{ github.repository }}" \
+            --config-file=release-please-config.json \
+            --manifest-file=.release-please-manifest.json \
+            ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      - name: Run release-please (GitHub release)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx --yes release-please@latest github-release \
+            --token="$GITHUB_TOKEN" \
+            --repo-url="${{ github.repository }}" \
+            --config-file=release-please-config.json \
+            --manifest-file=.release-please-manifest.json \
+            ${{ inputs.dry_run && '--dry-run' || '' }}

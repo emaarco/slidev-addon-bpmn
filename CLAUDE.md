@@ -72,7 +72,12 @@ Use `example.md` as the test file - it demonstrates the component usage with a s
 
 ## Release & Publishing
 
-Use the `/publish-release` skill to create and publish new releases.
+Releases are automated via [release-please](https://github.com/googleapis/release-please).
+Land conventional commits on `main` (`feat:`, `fix:`, `feat!:`) — release-please opens a
+`chore(main): release X.Y.Z` PR with the version bump and `CHANGELOG.md` diff. Merging that
+PR tags the commit and publishes a GitHub Release, which triggers `npm-publish.yml` to run
+`npm publish --provenance`. Both workflows expose a `dry_run` input via `workflow_dispatch`
+for testing without publishing.
 
 ## Skills
 
@@ -80,5 +85,4 @@ This repo ships with custom Claude Code skills in `.claude/skills/`. When a task
 
 | Skill | Command | When to use |
 |-------|---------|-------------|
-| publish-release | `/publish-release` | Create and publish a new npm release |
 | create-ticket | `/create-ticket` | Create a GitHub issue (feature, bug, or refactor) |
