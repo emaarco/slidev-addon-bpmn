@@ -72,12 +72,14 @@ Use `example.md` as the test file - it demonstrates the component usage with a s
 
 ## Release & Publishing
 
-Releases are automated via [release-please](https://github.com/googleapis/release-please).
-Land conventional commits on `main` (`feat:`, `fix:`, `feat!:`) — release-please opens a
+Releases are automated by the single `release-please.yml` workflow, built on
+[release-please](https://github.com/googleapis/release-please). Land conventional
+commits on `main` (`feat:`, `fix:`, `feat!:`) — release-please opens a
 `chore(main): release X.Y.Z` PR with the version bump and `CHANGELOG.md` diff. Merging that
-PR tags the commit and publishes a GitHub Release, which triggers `npm-publish.yml` to run
-`npm publish --provenance`. Both workflows expose a `dry_run` input via `workflow_dispatch`
-for testing without publishing.
+PR tags the commit and publishes a GitHub Release; the same workflow then runs its gated
+`publish` job (`npm publish --provenance`) and `deploy-pages` job (publish the example to
+GitHub Pages). The workflow exposes a `dry_run` input via `workflow_dispatch` that runs a
+`publish-dry-run` job (`npm publish --dry-run`) without creating a release or publishing.
 
 ## Skills
 
