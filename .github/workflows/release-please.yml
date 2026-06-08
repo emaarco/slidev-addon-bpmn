@@ -1,4 +1,4 @@
-name: Release Please
+name: Release
 
 on:
   push:
@@ -6,42 +6,91 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Preview the release PR / GitHub Release without creating them"
+        description: "Dry run (no PR, no release, no publish)"
         type: boolean
         default: false
 
 permissions:
   contents: write
   pull-requests: write
+  id-token: write
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name: ${{ steps.rp.outputs.tag_name }}
+    steps:
+      - id: rp
+        uses: googleapis/release-please-action@v5
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          dry-run: ${{ inputs.dry_run == true }}
+
+  publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' && inputs.dry_run != true }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v6
-
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm publish --provenance
 
-      - name: Run release-please (release PR)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx --yes release-please@latest release-pr \
-            --token="$GITHUB_TOKEN" \
-            --repo-url="${{ github.repository }}" \
-            --config-file=release-please-config.json \
-            --manifest-file=.release-please-manifest.json \
-            ${{ inputs.dry_run && '--dry-run' || '' }}
+  deploy-pages:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' && inputs.dry_run != true }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm run build:pages
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v5
 
-      - name: Run release-please (GitHub release)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx --yes release-please@latest github-release \
-            --token="$GITHUB_TOKEN" \
-            --repo-url="${{ github.repository }}" \
-            --config-file=release-please-config.json \
-            --manifest-file=.release-please-manifest.json \
-            ${{ inputs.dry_run && '--dry-run' || '' }}
+  publish-dry-run:
+    needs: release-please
+    if: ${{ inputs.dry_run == true }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm publish --provenance --dry-run
