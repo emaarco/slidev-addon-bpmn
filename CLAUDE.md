@@ -59,6 +59,7 @@ The npm package includes only:
 - `components/` directory (Bpmn.vue, BpmnTokenSimulation.vue, BpmnModeler.vue)
 - `composables/` directory (useBpmn.ts)
 - `engines/` directory (types.ts, zeebe.ts, camunda7.ts)
+- `internal/` directory (ToolbarButton.vue, fitDiagram.ts)
 - `vite.config.ts` (required Vite configuration)
 
 Everything else (`example.md`, `public/`, `docs/`) is excluded via the `files` field in package.json.
@@ -80,11 +81,3 @@ PR tags the commit and publishes a GitHub Release; the same workflow then runs i
 `publish` job (`npm publish --provenance`) and `deploy-pages` job (publish the example to
 GitHub Pages). The workflow exposes a `dry_run` input via `workflow_dispatch` that runs a
 `publish-dry-run` job (`npm publish --dry-run`) without creating a release or publishing.
-
-## Skills
-
-This repo ships with custom Claude Code skills in `.claude/skills/`. When a task matches an available skill, then use this skill instead of implementing it manually.
-
-| Skill | Command | When to use |
-|-------|---------|-------------|
-| create-ticket | `/create-ticket` | Create a GitHub issue (feature, bug, or refactor) |

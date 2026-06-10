@@ -4,9 +4,15 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
 
@@ -14,7 +20,7 @@ jobs:
         with:
           node-version: '24'
 
-      - uses: miragon/pin-npm-dependencies@v1
+      - uses: miragon/pin-npm-dependencies@7bd516fed2bbbfdd395772661f8e8cf8731bacae # v1.1.0
         with:
           files: package.json
 

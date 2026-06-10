@@ -5,6 +5,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 5
     labels:
       - "dependencies"
     assignees:
@@ -24,6 +26,8 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 5
     labels:
       - "dependencies"
     assignees:
