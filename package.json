@@ -16,7 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "@bpmn-io/properties-panel": "3.44.1",
-    "bpmn-js": "18.17.0",
+    "bpmn-js": "18.18.0",
     "bpmn-js-properties-panel": "5.58.0",
     "bpmn-js-token-simulation": "0.39.3",
     "camunda-bpmn-js-behaviors": "1.16.1",
@@ -28,7 +28,7 @@
     "@slidev/cli": "52.16.0",
     "@slidev/theme-default": "0.25.0",
     "@vitejs/plugin-vue": "6.0.7",
-    "@vue/test-utils": "2.4.10",
+    "@vue/test-utils": "2.4.11",
     "jsdom": "29.1.1",
     "playwright-chromium": "1.60.0",
     "vitest": "4.1.8"
