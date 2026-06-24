@@ -18,7 +18,7 @@
     "@bpmn-io/properties-panel": "3.44.1",
     "bpmn-js": "18.18.0",
     "bpmn-js-properties-panel": "5.58.0",
-    "bpmn-js-token-simulation": "0.39.3",
+    "bpmn-js-token-simulation": "0.39.4",
     "camunda-bpmn-js-behaviors": "1.16.1",
     "camunda-bpmn-moddle": "7.0.1",
     "camunda-transaction-boundaries": "1.1.2",
@@ -30,8 +30,8 @@
     "@vitejs/plugin-vue": "6.0.7",
     "@vue/test-utils": "2.4.11",
     "jsdom": "29.1.1",
-    "playwright-chromium": "1.60.0",
-    "vitest": "4.1.8"
+    "playwright-chromium": "1.61.0",
+    "vitest": "4.1.9"
   },
   "keywords": [
     "slidev",
