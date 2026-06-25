@@ -4,7 +4,8 @@
   "description": "Display BPMN 2.0 diagrams in Slidev presentations",
   "type": "module",
   "scripts": {
-    "dev": "portless run sh -c 'npx slidev example.md --port $PORT --remote --bind 127.0.0.1 --open'",
+    "dev": "portless",
+    "dev:app": "slidev example.md --port $PORT --remote --bind 127.0.0.1 --open",
     "build": "slidev build example.md",
     "export": "slidev export example.md",
     "screenshot": "slidev export example.md --format png",
@@ -31,6 +32,7 @@
     "@vue/test-utils": "2.4.11",
     "jsdom": "29.1.1",
     "playwright-chromium": "1.61.0",
+    "portless": "0.15.0",
     "vitest": "4.1.9"
   },
   "keywords": [

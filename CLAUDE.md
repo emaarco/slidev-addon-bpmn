@@ -9,9 +9,17 @@ This is a Slidev addon that enables displaying BPMN 2.0 diagrams in presentation
 ## Development Commands
 
 ```bash
-# Run the example presentation in dev mode (requires git and `npm install -g portless`)
-# Dev server URL is branch-based, e.g. http://slidev-addon-bpmn-main.localhost:1355
+# Run the example presentation in dev mode. portless ships as a devDependency, so a plain
+# `npm install` is enough — no global install. One-time per machine: start the proxy daemon
+# with `npx portless service install` (needs sudo once).
+# `dev` is just the portless proxy entrypoint; it runs the `dev:app` script (see
+# portless.json) and serves it on a stable .localhost URL. Portless is git-worktree-aware:
+# the main checkout is served at https://slidev-addon-bpmn.localhost, a linked worktree at
+# https://<worktree>.slidev-addon-bpmn.localhost — the slug is derived by portless, not built by us.
 npm run dev
+
+# Run the dev server directly, without portless (no stable URL, plain port)
+npm run dev:app
 
 # Build the example presentation
 npm run build
