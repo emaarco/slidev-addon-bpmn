@@ -209,10 +209,28 @@ function observeContainerForToggleScale() {
   }
   apply(target.clientWidth)
   if (typeof ResizeObserver === 'undefined') return
+  let lastW = 0
+  let lastH = 0
   resizeObserver = new ResizeObserver((entries) => {
-    for (const entry of entries) apply(entry.contentRect.width)
+    for (const entry of entries) {
+      apply(entry.contentRect.width)
+      const w = Math.round(entry.contentRect.width)
+      const h = Math.round(entry.contentRect.height)
+      if (w > 0 && h > 0 && (w !== lastW || h !== lastH)) {
+        lastW = w
+        lastH = h
+        refitDiagram()
+      }
+    }
   })
   resizeObserver.observe(target)
+}
+
+function refitDiagram() {
+  if (!viewer) return
+  const canvas = viewer.get('canvas') as any
+  canvas.resized()
+  fitDiagram(canvas, undefined, resolveMaxScale())
 }
 
 /**
