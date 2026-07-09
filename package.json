@@ -26,7 +26,7 @@
     "zeebe-bpmn-moddle": "1.16.0"
   },
   "devDependencies": {
-    "@slidev/cli": "52.16.0",
+    "@slidev/cli": "52.15.2",
     "@slidev/theme-default": "0.25.0",
     "@vitejs/plugin-vue": "6.0.7",
     "@vue/test-utils": "2.4.11",
