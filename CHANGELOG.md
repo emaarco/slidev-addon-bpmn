@@ -26,6 +26,13 @@
 
 * deploy live demo to GitHub Pages ([#27](https://github.com/emaarco/slidev-addon-bpmn/issues/27)) ([31b93b5](https://github.com/emaarco/slidev-addon-bpmn/commit/31b93b5a2af1899027dff55001e8b58e93099156))
 
+## [1.8.1](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.8.0...v1.8.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* **bpmn:** re-fit viewers when their container settles or resizes ([#77](https://github.com/emaarco/slidev-addon-bpmn/issues/77)) ([43a53f8](https://github.com/emaarco/slidev-addon-bpmn/commit/43a53f8aeef7c5c9174853057599aba2013b1305))
+
 ## [1.8.0](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.7.0...v1.8.0) (2026-07-09)
 
 
