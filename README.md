@@ -94,6 +94,7 @@ Renders interactive BPMN diagrams with token simulation capabilities. Perfect fo
 | `bpmnFilePath` | `string` | *required* | Path to the `.bpmn` file (relative to `public/`) |
 | `width` | `string` | `'100%'` | Width of the diagram container |
 | `height` | `string` | `'auto'` | Height of the diagram container (defaults to 500px when 'auto') |
+| `maxScale` | `number` | `2` | Cap on how far a small diagram is enlarged past its native size. Lower keeps it smaller; higher lets it fill more. |
 
 The token simulation provides interactive controls for stepping through process execution with animated token flow.
 
@@ -135,6 +136,7 @@ In fullscreen mode, the panel can be hidden and shown again via the toolbar — 
 | `width` | `string` | `'100%'` | Width of the modeler container |
 | `height` | `string` | `'500px'` | Height of the modeler container |
 | `engine` | `'zeebe' \| 'camunda7'` | — | Optional engine. Mounts a `bpmn-js-properties-panel` configured for the chosen engine. Omit for a panel-less modeler. |
+| `maxScale` | `number` | `2` | Cap on how far a small diagram is enlarged past its native size (e.g. a lone start event on a blank canvas). Lower keeps it smaller; higher lets it fill more. |
 
 ## 💡 Tips
 
