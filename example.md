@@ -75,6 +75,14 @@ Für die Camunda-7-Fraktion: `engine="camunda7"` swaps in the Camunda Platform p
 
 ## Blank Canvas Modeler
 
-No `engine` prop? Dann gibt's nur die Zeichenfläche – a bare modeler for pure structural modeling. Ideal for live sessions where you build a process from scratch with your audience.
+No `engine` prop? Dann gibt's nur die Zeichenfläche für live modeling from scratch. Und weil so a Blank Canvas anfangs nur a einzigs Element hat, kannst mit `:max-scale` de Zoom-Grenz selba festlegn – standardmäßig 2, do auf 1.5 gsetzt.
 
-<BpmnModeler height="320px"></BpmnModeler>
+<BpmnModeler :max-scale="1.5" height="320px"></BpmnModeler>
+
+---
+
+## Small Diagrams Fill the Space
+
+Sauba! A kloans Modell duad si jetz aa breit macha, statt mickrig in da Mittn zu hocka – de kompaktn Diagramm wachsn schee mit, a wahre Mordsgaudi fürs Aug!
+
+<BpmnTokenSimulation bpmnFilePath="./loan-approval.bpmn" width="90%" height="360px"></BpmnTokenSimulation>

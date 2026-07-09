@@ -31,7 +31,7 @@ describe('fitDiagram', () => {
   })
 
   it('expands width to match a wider outer container, keeping the diagram centred', () => {
-    // Inner is large enough that fitting does not trigger the MAX_SCALE clamp.
+    // Inner is large enough that fitting does not trigger the clamp.
     const canvas = createCanvas(
       { x: 0, y: 0, width: 2000, height: 1000 },
       { width: 1000, height: 500 },
@@ -70,9 +70,8 @@ describe('fitDiagram', () => {
     })
   })
 
-  it('clamps a tiny diagram at native scale and centres it (no enlargement past 1×)', () => {
-    // A 36×36 start event in a 1500×500 card. Padded fit would scale ~12×;
-    // we want the box to span the full outer (scale = 1) centred on the bbox.
+  it('clamps a tiny diagram at the default cap (2×) and centres it, instead of ballooning to fit', () => {
+    // 36×36 in a 1500×500 card: padded fit ≈12×, capped at 2× native (~72px, not huge).
     const canvas = createCanvas(
       { x: 100, y: 100, width: 36, height: 36 },
       { width: 1500, height: 500 },
@@ -80,14 +79,55 @@ describe('fitDiagram', () => {
 
     fitDiagram(canvas)
 
-    // bbox centre (118, 118) → box origin = (118 - 750, 118 - 250) = (-632, -132).
-    // Box dims = outer dims (scale = 1).
+    // bbox centre (118,118); box = outer/2 = 750×250, origin (-257, -7).
+    expect(canvas._setter).toHaveBeenLastCalledWith({
+      x: -257,
+      y: -7,
+      width: 750,
+      height: 250,
+    })
+  })
+
+  it('honours an explicit maxScale argument (clamps at the given cap)', () => {
+    // Same 36×36 in a 1500×500 card, but maxScale=1 → clamp at native (viewbox = outer).
+    const canvas = createCanvas(
+      { x: 100, y: 100, width: 36, height: 36 },
+      { width: 1500, height: 500 },
+    )
+
+    fitDiagram(canvas, undefined, 1)
+
+    // bbox centre (118,118); box = outer/1 = 1500×500, origin (-632, -132).
     expect(canvas._setter).toHaveBeenLastCalledWith({
       x: -632,
       y: -132,
       width: 1500,
       height: 500,
     })
+  })
+
+  it('enlarges a small-but-real diagram to fill the card (up to the cap)', () => {
+    // Regression guard: a 560×224 process smaller than its 1000×500 pane must scale UP
+    // to fill it — old MAX_SCALE=1 clamped to native 1× (width 1000); the 2× cap lets ~1.62 apply.
+    const canvas = createCanvas(
+      { x: 0, y: 0, width: 560, height: 224 },
+      { width: 1000, height: 500 },
+    )
+
+    fitDiagram(canvas)
+
+    // pad=28 → box 616×280. fitScale min(1.62, 1.79)=1.62 (<2, no clamp).
+    // boxAspect 2.2 > outerAspect 2 → expand height to 616/2=308, y=-28-14=-42.
+    expect(canvas._setter).toHaveBeenLastCalledWith({
+      x: -28,
+      y: -42,
+      width: 616,
+      height: 308,
+    })
+
+    // Genuinely enlarged: viewbox width 616 < outer 1000 → zoom ~1.62×, not native 1×.
+    const [box] = canvas._setter.mock.calls.at(-1) as [Box]
+    expect(box.width).toBeLessThan(1000)
   })
 
   it('honours an explicit ratio', () => {

@@ -3,8 +3,8 @@
     <p v-if="loading">Loading BPMN diagram...</p>
     <p v-if="error" class="text-red-500">{{ error }}</p>
     <div ref="containerRef" class="bpmn-token-simulation-container" :style="{
-    width: `calc(${props.width} - ${margin * 2}px)`,
-    height: `calc(${containerHeight} - ${margin * 2}px)`,
+    width: `calc(100% - ${margin * 2}px)`,
+    height: `calc(100% - ${margin * 2}px)`,
     margin: `${margin}px`,
   }"
     ></div>
@@ -98,6 +98,7 @@ const props = withDefaults(defineProps<{
   width?: string
   height?: string
   fullscreen?: boolean
+  maxScale?: number
 }>(), {
   width: '100%',
   height: 'auto',
@@ -105,6 +106,12 @@ const props = withDefaults(defineProps<{
 })
 
 const containerHeight = props.height === 'auto' ? '500px' : props.height
+
+// User-overridable enlarge cap for fitDiagram; undefined → fitDiagram's default.
+function resolveMaxScale(): number | undefined {
+  const n = Number(props.maxScale)
+  return Number.isFinite(n) && n > 0 ? n : undefined
+}
 
 /**
  * Polls for container dimensions to be ready before rendering.
@@ -154,7 +161,7 @@ async function renderBpmn() {
 
     const canvas = viewer.get('canvas') as any
     canvas.resized()
-    fitDiagram(canvas)
+    fitDiagram(canvas, undefined, resolveMaxScale())
 
     observeContainerForToggleScale()
   })
@@ -182,7 +189,7 @@ async function openFullscreen() {
   await fullscreenViewer.importXML(currentXml.value)
   const canvas = fullscreenViewer.get('canvas') as any
   canvas.resized()
-  fitDiagram(canvas)
+  fitDiagram(canvas, undefined, resolveMaxScale())
 }
 
 function closeFullscreen() {

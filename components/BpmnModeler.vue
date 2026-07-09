@@ -4,8 +4,8 @@
     <p v-if="error" class="text-red-500">{{ error }}</p>
 
     <div ref="viewerContainerRef" class="bpmn-modeler-container" :style="{
-      width: `calc(${props.width} - ${margin * 2}px)`,
-      height: `calc(${containerHeight} - ${margin * 2}px)`,
+      width: `calc(100% - ${margin * 2}px)`,
+      height: `calc(100% - ${margin * 2}px)`,
       margin: `${margin}px`,
     }"></div>
 
@@ -136,6 +136,7 @@ const props = withDefaults(defineProps<{
   width?: string
   height?: string
   engine?: Engine
+  maxScale?: number
 }>(), {
   width: '100%',
   height: '500px',
@@ -148,6 +149,12 @@ function resolveEngineConfig() {
 }
 
 const containerHeight = props.height
+
+// User-overridable enlarge cap for fitDiagram; undefined → fitDiagram's default.
+function resolveMaxScale(): number | undefined {
+  const n = Number(props.maxScale)
+  return Number.isFinite(n) && n > 0 ? n : undefined
+}
 
 async function waitForContainer(containerRef: Ref<HTMLDivElement | null>): Promise<boolean> {
   return new Promise((resolve) => {
@@ -192,7 +199,7 @@ async function renderViewer(): Promise<boolean> {
     await viewer.importXML(currentXml.value)
     const canvas = viewer.get('canvas') as any
     canvas.resized()
-    fitDiagram(canvas)
+    fitDiagram(canvas, undefined, resolveMaxScale())
   }
   return true
 }
@@ -236,7 +243,7 @@ async function openFullscreen() {
   eventBus.on('commandStack.changed', () => { hasModelerChanges = true })
   const canvas = modeler.get('canvas') as any
   canvas.resized()
-  fitDiagram(canvas)
+  fitDiagram(canvas, undefined, resolveMaxScale())
 
   if (props.engine === 'camunda7') {
     const transactionBoundaries = modeler.get('transactionBoundaries') as any

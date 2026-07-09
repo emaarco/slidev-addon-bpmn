@@ -111,6 +111,20 @@ describe('BpmnTokenSimulation.vue', () => {
     expect(outerDiv.style.height).toBe('700px')
   })
 
+  it('sizes the root to the width prop while the inner container fills it', () => {
+    mockFetchSuccess()
+    const wrapper = mount(BpmnTokenSimulation, {
+      props: { bpmnFilePath: 'test.bpmn', width: '90%' },
+    })
+    const rootDiv = wrapper.find('div').element as HTMLDivElement
+    const innerDiv = wrapper.find('div[style*="calc"]').element as HTMLDivElement
+    // The root carries the actual width; the inner container fills it (100% - margins)
+    // instead of re-applying the % — which used to shrink a 90% viewer to ~81% and centre it.
+    expect(rootDiv.style.width).toBe('90%')
+    expect(innerDiv.style.width).toBe('calc(100% - 10px)')
+    expect(innerDiv.style.height).toBe('calc(100% - 10px)')
+  })
+
   it('renders successfully when container has dimensions', async () => {
     mockFetchSuccess()
     const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
