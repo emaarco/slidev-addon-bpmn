@@ -1,4 +1,3 @@
-
 # [1.7.0](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.5.0...v1.7.0) (2026-05-05)
 
 
@@ -26,6 +25,13 @@
 ### Features
 
 * deploy live demo to GitHub Pages ([#27](https://github.com/emaarco/slidev-addon-bpmn/issues/27)) ([31b93b5](https://github.com/emaarco/slidev-addon-bpmn/commit/31b93b5a2af1899027dff55001e8b58e93099156))
+
+## [1.8.0](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.7.0...v1.8.0) (2026-07-09)
+
+
+### Features
+
+* **bpmn:** fill available space for small diagrams via configurable maxScale ([#75](https://github.com/emaarco/slidev-addon-bpmn/issues/75)) ([ddc926d](https://github.com/emaarco/slidev-addon-bpmn/commit/ddc926dde177d16a0dc9e0a60d7661bd2ce63dee))
 
 ## [1.2.1](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.2.0...v1.2.1) (2026-03-25)
 
