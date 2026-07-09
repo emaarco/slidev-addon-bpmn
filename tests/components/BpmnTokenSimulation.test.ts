@@ -147,6 +147,35 @@ describe('BpmnTokenSimulation.vue', () => {
     })
   })
 
+  it('re-fits the diagram when the container resizes after the initial fit', async () => {
+    let observerCallback: ((entries: Array<{ contentRect: { width: number, height: number } }>) => void) | null = null
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(cb: (entries: Array<{ contentRect: { width: number, height: number } }>) => void) {
+        observerCallback = cb
+      }
+      observe() {}
+      disconnect() {}
+    })
+
+    mockFetchSuccess()
+    const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    const resizedBefore = mockResized.mock.calls.length
+    const setterBefore = mockViewbox.mock.calls.filter((args) => args.length === 1 && typeof args[0] === 'object').length
+    expect(observerCallback).not.toBeNull()
+
+    observerCallback!([{ contentRect: { width: 450, height: 290 } }])
+    await flushPromises()
+
+    const setterAfter = mockViewbox.mock.calls.filter((args) => args.length === 1 && typeof args[0] === 'object').length
+    expect(mockResized.mock.calls.length).toBeGreaterThan(resizedBefore)
+    expect(setterAfter).toBeGreaterThan(setterBefore)
+  })
+
   it('bails silently when container dimensions never arrive (Slidev preload)', async () => {
     vi.useFakeTimers()
     mockFetchSuccess()

@@ -130,6 +130,7 @@ const currentXml = ref<string | null>(null)
 let viewer: InstanceType<typeof BpmnViewer> | null = null
 let modeler: InstanceType<typeof BpmnModeler> | null = null
 let hasModelerChanges = false
+let resizeObserver: ResizeObserver | null = null
 
 const props = withDefaults(defineProps<{
   bpmnFilePath?: string
@@ -200,8 +201,35 @@ async function renderViewer(): Promise<boolean> {
     const canvas = viewer.get('canvas') as any
     canvas.resized()
     fitDiagram(canvas, undefined, resolveMaxScale())
+    observeViewerContainer()
   }
   return true
+}
+
+function observeViewerContainer() {
+  if (typeof ResizeObserver === 'undefined' || !viewerContainerRef.value) return
+  resizeObserver?.disconnect()
+  let lastW = 0
+  let lastH = 0
+  resizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const w = Math.round(entry.contentRect.width)
+      const h = Math.round(entry.contentRect.height)
+      if (w > 0 && h > 0 && (w !== lastW || h !== lastH)) {
+        lastW = w
+        lastH = h
+        refitViewer()
+      }
+    }
+  })
+  resizeObserver.observe(viewerContainerRef.value)
+}
+
+function refitViewer() {
+  if (!viewer) return
+  const canvas = viewer.get('canvas') as any
+  canvas.resized()
+  fitDiagram(canvas, undefined, resolveMaxScale())
 }
 
 async function renderBpmn() {
@@ -291,6 +319,8 @@ onSlideEnter(async () => {
 })
 
 onUnmounted(() => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
   viewer?.destroy()
   viewer = null
   modeler?.destroy()
