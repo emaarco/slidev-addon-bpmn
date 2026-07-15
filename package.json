@@ -17,7 +17,7 @@
   "license": "MIT",
   "dependencies": {
     "@bpmn-io/properties-panel": "3.47.0",
-    "bpmn-js": "18.19.0",
+    "bpmn-js": "18.21.0",
     "bpmn-js-properties-panel": "5.60.0",
     "bpmn-js-token-simulation": "0.40.0",
     "camunda-bpmn-js-behaviors": "1.18.0",
@@ -26,14 +26,14 @@
     "zeebe-bpmn-moddle": "1.16.0"
   },
   "devDependencies": {
-    "@slidev/cli": "52.15.2",
+    "@slidev/cli": "52.17.0",
     "@slidev/theme-default": "0.25.0",
     "@vitejs/plugin-vue": "6.0.7",
     "@vue/test-utils": "2.4.11",
     "jsdom": "29.1.1",
     "playwright-chromium": "1.61.1",
     "portless": "0.15.1",
-    "vitest": "4.1.9"
+    "vitest": "4.1.10"
   },
   "keywords": [
     "slidev",
