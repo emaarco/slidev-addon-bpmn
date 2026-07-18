@@ -62,7 +62,7 @@ The npm package includes only:
 - `components/` directory (Bpmn.vue, BpmnTokenSimulation.vue, BpmnModeler.vue)
 - `composables/` directory (useBpmn.ts)
 - `engines/` directory (types.ts, zeebe.ts, camunda7.ts)
-- `internal/` directory (ToolbarButton.vue, fitDiagram.ts)
+- `shared/` directory (`ui/ToolbarButton.vue`, `lib/fitDiagram.ts`)
 - `vite.config.ts` (required Vite configuration)
 
 Everything else (`example.md`, `public/`, `docs/`) is excluded via the `files` field in package.json.

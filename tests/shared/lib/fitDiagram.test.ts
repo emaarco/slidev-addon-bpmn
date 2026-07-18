@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { fitDiagram } from '../../internal/fitDiagram'
+import { fitDiagram } from '../../../shared/lib/fitDiagram'
 
 type Box = { x: number; y: number; width: number; height: number }
 

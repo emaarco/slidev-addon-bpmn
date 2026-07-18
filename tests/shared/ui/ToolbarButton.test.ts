@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 
-import ToolbarButton from '../../internal/ToolbarButton.vue'
+import ToolbarButton from '../../../shared/ui/ToolbarButton.vue'
 
 describe('ToolbarButton.vue', () => {
   it('renders the label when provided', () => {

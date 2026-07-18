@@ -72,8 +72,8 @@ import tokenSimulation from 'bpmn-js-token-simulation/lib/viewer'
 import { onSlideEnter } from '@slidev/client'
 import 'bpmn-js-token-simulation/assets/css/bpmn-js-token-simulation.css'
 import { useBpmn } from '../composables/useBpmn'
-import { fitDiagram } from '../internal/fitDiagram'
-import ToolbarButton from '../internal/ToolbarButton.vue'
+import { fitDiagram } from '../shared/lib/fitDiagram'
+import ToolbarButton from '../shared/ui/ToolbarButton.vue'
 
 const margin = 5
 const containerWaitTimeout = 5000

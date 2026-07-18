@@ -113,8 +113,8 @@ import { useBpmn } from '../composables/useBpmn'
 import { zeebeEngine } from '../engines/zeebe'
 import { camunda7Engine } from '../engines/camunda7'
 import type { Engine } from '../engines/types'
-import { fitDiagram } from '../internal/fitDiagram'
-import ToolbarButton from '../internal/ToolbarButton.vue'
+import { fitDiagram } from '../shared/lib/fitDiagram'
+import ToolbarButton from '../shared/ui/ToolbarButton.vue'
 
 const margin = 5
 const containerWaitTimeout = 5000
