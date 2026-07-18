@@ -25,5 +25,6 @@ jobs:
           files: package.json
 
       - run: npm ci
+      - run: npm run lint:deps
       - run: npm test
       - run: npm run build
