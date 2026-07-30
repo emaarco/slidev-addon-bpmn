@@ -26,6 +26,18 @@
 
 * deploy live demo to GitHub Pages ([#27](https://github.com/emaarco/slidev-addon-bpmn/issues/27)) ([31b93b5](https://github.com/emaarco/slidev-addon-bpmn/commit/31b93b5a2af1899027dff55001e8b58e93099156))
 
+## [1.9.0](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.8.1...v1.9.0) (2026-07-30)
+
+
+### Features
+
+* enable token simulation in BpmnModeler ([#86](https://github.com/emaarco/slidev-addon-bpmn/issues/86)) ([bc6a00f](https://github.com/emaarco/slidev-addon-bpmn/commit/bc6a00f21fcdf25d2051db49e52d2f8d4701b71b))
+
+
+### Bug Fixes
+
+* **deps:** pin @slidev/cli to 52.15.2 to avoid subpath navigation 404 ([#79](https://github.com/emaarco/slidev-addon-bpmn/issues/79)) ([f6173ec](https://github.com/emaarco/slidev-addon-bpmn/commit/f6173ec166dc25dff63f3d67280b2e278cd26f63))
+
 ## [1.8.1](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.8.0...v1.8.1) (2026-07-09)
 
 
