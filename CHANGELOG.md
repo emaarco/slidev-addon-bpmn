@@ -26,6 +26,13 @@
 
 * deploy live demo to GitHub Pages ([#27](https://github.com/emaarco/slidev-addon-bpmn/issues/27)) ([31b93b5](https://github.com/emaarco/slidev-addon-bpmn/commit/31b93b5a2af1899027dff55001e8b58e93099156))
 
+## [1.10.0](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.9.0...v1.10.0) (2026-07-30)
+
+
+### Features
+
+* make Camunda 7 transaction boundaries toggleable via prop ([#87](https://github.com/emaarco/slidev-addon-bpmn/issues/87)) ([9d838db](https://github.com/emaarco/slidev-addon-bpmn/commit/9d838dbaccc6a78029405d3b460bc525c62fc39c))
+
 ## [1.9.0](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.8.1...v1.9.0) (2026-07-30)
 
 
