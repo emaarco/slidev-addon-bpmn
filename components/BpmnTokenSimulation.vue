@@ -269,6 +269,13 @@ onUnmounted(() => {
   transform-origin: top left;
 }
 
+/* Trim the toggle pill down from its 16px default — smaller and less dominant,
+   but still clearly larger than the 11px chrome buttons. Its icon is height:1em,
+   so font-size drives the whole pill; composes with the --bts-toggle-scale above. */
+.bpmn-token-simulation-container :deep(.bts-toggle-mode) {
+  font-size: 13px;
+}
+
 /* Bottom-centred speed selector: keep upstream's translate(-50%, 0) and compose
    with scale anchored to the element's bottom-centre so centring is preserved. */
 .bpmn-token-simulation-container :deep(.bts-set-animation-speed) {

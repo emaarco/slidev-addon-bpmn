@@ -354,4 +354,12 @@ onUnmounted(() => {
   transform: scale(0.7);
   transform-origin: bottom right;
 }
+
+/* Trim the token-simulation toggle pill down from its 16px default — smaller and
+   less dominant, but still clearly larger than the 11px chrome buttons. Its icon
+   is height:1em, so font-size drives the whole pill. Only present when the inline
+   viewer runs with tokenSimulation. */
+.bpmn-modeler-container :deep(.bts-toggle-mode) {
+  font-size: 13px;
+}
 </style>
