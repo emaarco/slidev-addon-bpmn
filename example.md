@@ -73,6 +73,14 @@ Für die Camunda-7-Fraktion: `engine="camunda7"` swaps in the Camunda Platform p
 
 ---
 
+## Transaction Boundaries
+
+Set `:transaction-boundaries="true"` (default `false`) and the Camunda-7-Modeler overlays the transaction boundaries – so siagt ma sofort, wo d'Engine an async continuation an Commit macht. Braucht `engine="camunda7"`, weil's `camunda:asyncBefore`/`asyncAfter` ausliest.
+
+<BpmnModeler bpmnFilePath="./loan-approval.bpmn" engine="camunda7" :transaction-boundaries="true" height="320px"></BpmnModeler>
+
+---
+
 ## Blank Canvas Modeler
 
 No `engine` prop? Dann gibt's nur die Zeichenfläche für live modeling from scratch. Und weil so a Blank Canvas anfangs nur a einzigs Element hat, kannst mit `:max-scale` de Zoom-Grenz selba festlegn – standardmäßig 2, do auf 1.5 gsetzt.

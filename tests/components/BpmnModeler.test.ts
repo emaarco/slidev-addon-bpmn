@@ -529,4 +529,61 @@ describe('BpmnModeler.vue', () => {
     expect(options.propertiesPanel).toBeDefined()
     expect(options.propertiesPanel.parent).toBeInstanceOf(HTMLElement)
   })
+
+  it('shows transaction boundaries when transactionBoundaries is on and engine="camunda7"', async () => {
+    const mockShow = vi.fn()
+    mockGet.mockImplementation((service: string) => {
+      if (service === 'transactionBoundaries') return { show: mockShow }
+      return { resized: mockResized, viewbox: mockViewbox, on: vi.fn() }
+    })
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, {
+      props: { bpmnFilePath: 'test.bpmn', engine: 'camunda7', transactionBoundaries: true },
+    })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    await withModelerDimensions(() => (wrapper.vm as any).openFullscreen())
+
+    expect(mockShow).toHaveBeenCalled()
+  })
+
+  it('does not show transaction boundaries by default (engine="camunda7", prop unset)', async () => {
+    const mockShow = vi.fn()
+    mockGet.mockImplementation((service: string) => {
+      if (service === 'transactionBoundaries') return { show: mockShow }
+      return { resized: mockResized, viewbox: mockViewbox, on: vi.fn() }
+    })
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, {
+      props: { bpmnFilePath: 'test.bpmn', engine: 'camunda7' },
+    })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    await withModelerDimensions(() => (wrapper.vm as any).openFullscreen())
+
+    expect(mockShow).not.toHaveBeenCalled()
+  })
+
+  it('warns and skips transaction boundaries when enabled without engine="camunda7"', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, {
+      props: { bpmnFilePath: 'test.bpmn', engine: 'zeebe', transactionBoundaries: true },
+    })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    await withModelerDimensions(() => (wrapper.vm as any).openFullscreen())
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('transactionBoundaries requires engine="camunda7"'))
+    warnSpy.mockRestore()
+  })
 })
