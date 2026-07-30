@@ -81,6 +81,14 @@ No `engine` prop? Dann gibt's nur die Zeichenfläche für live modeling from scr
 
 ---
 
+## Modeler + Token Simulation
+
+Set `:token-simulation="true"` and the fullscreen modeler gains a toggle to switch between *editing* and *simulating* – erst 's Modell baun, dann glei de Tokens durchlaufn lassn, ohne d'Komponente z'wechseln. Kombinierbar mit jeder Engine.
+
+<BpmnModeler bpmnFilePath="./newsletter.bpmn" engine="zeebe" :token-simulation="true" height="320px"></BpmnModeler>
+
+---
+
 ## Small Diagrams Fill the Space
 
 Sauba! A kloans Modell duad si jetz aa breit macha, statt mickrig in da Mittn zu hocka – de kompaktn Diagramm wachsn schee mit, a wahre Mordsgaudi fürs Aug!

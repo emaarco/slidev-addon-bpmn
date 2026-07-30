@@ -13,7 +13,7 @@
       v-if="props.fullscreen && !loading && !error"
       title="Open in fullscreen"
       label="Expand"
-      :position="{ top: '12px', right: '12px', zIndex: 10 }"
+      :position="{ top: '20px', right: '20px', zIndex: 10 }"
       @click="openFullscreen"
     >
       <template #icon>
@@ -267,6 +267,13 @@ onUnmounted(() => {
 .bpmn-token-simulation-container :deep(.bts-scopes) {
   transform: scale(var(--bts-toggle-scale, 1));
   transform-origin: top left;
+}
+
+/* Trim the toggle pill down from its 16px default — smaller and less dominant,
+   but still clearly larger than the 11px chrome buttons. Its icon is height:1em,
+   so font-size drives the whole pill; composes with the --bts-toggle-scale above. */
+.bpmn-token-simulation-container :deep(.bts-toggle-mode) {
+  font-size: 13px;
 }
 
 /* Bottom-centred speed selector: keep upstream's translate(-50%, 0) and compose

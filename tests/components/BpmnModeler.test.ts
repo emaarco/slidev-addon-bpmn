@@ -30,6 +30,10 @@ vi.mock('bpmn-js/dist/assets/bpmn-js.css', () => ({}))
 vi.mock('bpmn-js/dist/assets/diagram-js.css', () => ({}))
 vi.mock('bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css', () => ({}))
 vi.mock('@bpmn-io/properties-panel/dist/assets/properties-panel.css', () => ({}))
+vi.mock('bpmn-js-token-simulation/assets/css/bpmn-js-token-simulation.css', () => ({}))
+
+vi.mock('bpmn-js-token-simulation', () => ({ default: 'token-sim-modeler' }))
+vi.mock('bpmn-js-token-simulation/lib/viewer', () => ({ default: 'token-sim-viewer' }))
 
 vi.mock('../../engines/zeebe', () => ({
   zeebeEngine: {
@@ -420,6 +424,67 @@ describe('BpmnModeler.vue', () => {
     expect(options.moddleExtensions).toEqual({ zeebe: { tag: 'zeebe-moddle' } })
     expect(options.propertiesPanel).toBeDefined()
     expect(options.propertiesPanel.parent).toBeInstanceOf(HTMLElement)
+  })
+
+  it('passes no additionalModules to the inline viewer when tokenSimulation is off', async () => {
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, { props: { bpmnFilePath: 'test.bpmn' } })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    const options = MockBpmnViewer.mock.calls[0][0]
+    expect(options).not.toHaveProperty('additionalModules')
+  })
+
+  it('wires the token-simulation viewer module into the inline viewer when tokenSimulation is on', async () => {
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, {
+      props: { bpmnFilePath: 'test.bpmn', tokenSimulation: true },
+    })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    const options = MockBpmnViewer.mock.calls[0][0]
+    expect(options.additionalModules).toContain('token-sim-viewer')
+  })
+
+  it('wires the token-simulation modeler module into the fullscreen modeler when tokenSimulation is on', async () => {
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, {
+      props: { bpmnFilePath: 'test.bpmn', tokenSimulation: true },
+    })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    MockBpmnModeler.mockClear()
+    await withModelerDimensions(() => (wrapper.vm as any).openFullscreen())
+
+    const options = MockBpmnModeler.mock.calls[0][0]
+    expect(options.additionalModules).toContain('token-sim-modeler')
+  })
+
+  it('combines engine modules and token-simulation in the fullscreen modeler', async () => {
+    mockFetchSuccess()
+    const wrapper = mount(BpmnModelerComponent, {
+      props: { bpmnFilePath: 'test.bpmn', engine: 'zeebe', tokenSimulation: true },
+    })
+    giveContainerDimensions(wrapper)
+
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await flushPromises()
+
+    MockBpmnModeler.mockClear()
+    await withModelerDimensions(() => (wrapper.vm as any).openFullscreen())
+
+    const options = MockBpmnModeler.mock.calls[0][0]
+    expect(options.additionalModules).toEqual(['zeebe-mod-a', 'zeebe-mod-b', 'token-sim-modeler'])
+    expect(options.propertiesPanel).toBeDefined()
   })
 
   it('togglePanel flips isPanelOpen and triggers canvas.resized()', async () => {
