@@ -34,7 +34,7 @@ The addon provides three Vue components:
 
 - **`Bpmn.vue`** — Static SVG rendering (off-screen render approach, best for PDF exports)
 - **`BpmnTokenSimulation.vue`** — Interactive viewer with animated token flow simulation
-- **`BpmnModeler.vue`** — Interactive BPMN modeler for live diagram editing (workshops/trainings). Accepts an optional `engine` prop (`"zeebe"` | `"camunda7"`) that mounts an engine-specific properties panel side-by-side with the canvas. Engine wiring lives in `engines/zeebe.ts` and `engines/camunda7.ts` — one file per engine (SRP); the component picks one via a small `if` in `resolveEngineConfig()`. Adding a new engine = one new file under `engines/` plus one `if` line.
+- **`BpmnModeler.vue`** — Interactive BPMN modeler for live diagram editing (workshops/trainings). Accepts an optional `engine` prop (`"zeebe"` | `"camunda7"`) that mounts an engine-specific properties panel side-by-side with the canvas. Engine wiring lives in `engines/zeebe.ts` and `engines/camunda7.ts` — one file per engine (SRP); the component picks one via a small `if` in `resolveEngineConfig()`. Adding a new engine = one new file under `engines/` plus one `if` line. Also accepts a `transactionBoundaries` prop (default `false`) that overlays Camunda 7 transaction boundaries via the `camunda-transaction-boundaries` module (registered in `engines/camunda7.ts`); it only takes effect with `engine="camunda7"` since the visualization reads `camunda:asyncBefore`/`asyncAfter` from the Camunda moddle.
 
 #### Bpmn.vue (Static Viewer)
 

@@ -142,10 +142,12 @@ const props = withDefaults(defineProps<{
   engine?: Engine
   maxScale?: number
   tokenSimulation?: boolean
+  transactionBoundaries?: boolean
 }>(), {
   width: '100%',
   height: '500px',
   tokenSimulation: false,
+  transactionBoundaries: false,
 })
 
 function resolveEngineConfig() {
@@ -290,9 +292,13 @@ async function openFullscreen() {
   canvas.resized()
   fitDiagram(canvas, undefined, resolveMaxScale())
 
-  if (props.engine === 'camunda7') {
-    const transactionBoundaries = modeler.get('transactionBoundaries') as any
-    transactionBoundaries.show()
+  if (props.transactionBoundaries) {
+    if (props.engine === 'camunda7') {
+      const transactionBoundaries = modeler.get('transactionBoundaries') as any
+      transactionBoundaries.show()
+    } else {
+      console.warn('[BpmnModeler] transactionBoundaries requires engine="camunda7"; ignoring.')
+    }
   }
 }
 
