@@ -13,7 +13,7 @@
       v-if="!loading && !error"
       title="Open modeler"
       label="Edit"
-      :position="{ top: '12px', right: '12px', zIndex: 10 }"
+      :position="{ top: '20px', right: '20px', zIndex: 10 }"
       @click="openFullscreen"
     >
       <template #icon>
@@ -104,10 +104,13 @@
 import { type Ref, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import BpmnViewer from 'bpmn-js/lib/Viewer'
 import BpmnModeler from 'bpmn-js/lib/Modeler'
+import tokenSimulationModeler from 'bpmn-js-token-simulation'
+import tokenSimulationViewer from 'bpmn-js-token-simulation/lib/viewer'
 import 'bpmn-js/dist/assets/bpmn-js.css'
 import 'bpmn-js/dist/assets/diagram-js.css'
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css'
 import '@bpmn-io/properties-panel/dist/assets/properties-panel.css'
+import 'bpmn-js-token-simulation/assets/css/bpmn-js-token-simulation.css'
 import { onSlideEnter } from '@slidev/client'
 import { useBpmn } from '../composables/useBpmn'
 import { zeebeEngine } from '../engines/zeebe'
@@ -138,9 +141,11 @@ const props = withDefaults(defineProps<{
   height?: string
   engine?: Engine
   maxScale?: number
+  tokenSimulation?: boolean
 }>(), {
   width: '100%',
   height: '500px',
+  tokenSimulation: false,
 })
 
 function resolveEngineConfig() {
@@ -182,7 +187,12 @@ async function renderViewer(): Promise<boolean> {
   const ready = await waitForContainer(viewerContainerRef)
   if (!ready) return false
 
-  viewer = new BpmnViewer({ container: viewerContainerRef.value! })
+  const viewerOptions: any = { container: viewerContainerRef.value! }
+  if (props.tokenSimulation) {
+    const disableSnackbarModule = { notifications: ['value', { showNotification: () => {} }] }
+    viewerOptions.additionalModules = [tokenSimulationViewer, disableSnackbarModule]
+  }
+  viewer = new BpmnViewer(viewerOptions)
 
   if (!currentXml.value) {
     if (props.bpmnFilePath) {
@@ -258,10 +268,17 @@ async function openFullscreen() {
 
   const config = resolveEngineConfig()
   const options: any = { container: modelerContainerRef.value! }
+  const additionalModules: any[] = []
   if (config) {
     options.propertiesPanel = { parent: propertiesPanelRef.value! }
-    options.additionalModules = config.additionalModules
+    additionalModules.push(...config.additionalModules)
     options.moddleExtensions = config.moddleExtensions
+  }
+  if (props.tokenSimulation) {
+    additionalModules.push(tokenSimulationModeler)
+  }
+  if (additionalModules.length) {
+    options.additionalModules = additionalModules
   }
   modeler = new BpmnModeler(options)
 

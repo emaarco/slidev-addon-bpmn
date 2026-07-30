@@ -13,7 +13,7 @@
       v-if="props.fullscreen && !loading && !error"
       title="Open in fullscreen"
       label="Expand"
-      :position="{ top: '12px', right: '12px', zIndex: 10 }"
+      :position="{ top: '20px', right: '20px', zIndex: 10 }"
       @click="openFullscreen"
     >
       <template #icon>
