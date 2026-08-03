@@ -9,3 +9,11 @@
 .cover-logo {
   display: none;
 }
+
+/* Align the inline social icons (carbon logos) with the link text on the
+   presenter slide, and give them a touch of breathing room before each label. */
+.person-bio svg {
+  display: inline-block;
+  vertical-align: -0.15em;
+  margin-right: 0.15em;
+}

@@ -120,4 +120,4 @@ accent: blue
 side: left
 ---
 
-Open-source engineer building solutions around BPMN, DMN and process automation in general, as **emaarco**. Find me on [LinkedIn](https://linkedin.com/in/schaeckm), [Medium](https://medium.com/@emaarco) and [GitHub](https://github.com/emaarco).
+Open-source engineer building solutions around BPMN, DMN and process automation in general, as **emaarco**. Find me on <carbon-logo-linkedin /> [LinkedIn](https://linkedin.com/in/schaeckm), <carbon-logo-medium /> [Medium](https://medium.com/@emaarco) and <carbon-logo-github /> [GitHub](https://github.com/emaarco).
