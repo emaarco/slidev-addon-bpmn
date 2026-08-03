@@ -1,54 +1,19 @@
 /*
- * Demo deck palette for example.md.
- * Loaded globally by Slidev because it sits next to example.md (Slidev auto-imports
- * style.css from the project root). Not included in the published addon — see
- * package.json#files.
+ * Global overrides for the example deck. Auto-imported by Slidev because it sits
+ * next to example.md. Not part of the published addon (excluded via package.json#files).
  */
 
-.slidev-layout h1,
-h1 {
-  color: #335de4;
-  font-weight: bold;
-  margin-bottom: 0;
+/* Hide the theme's Miragon logo on the cover slide: this is a personal addon deck,
+   not a Miragon-branded talk. The toolkit's cover layout has no prop for this, so
+   we override its .cover-logo element here. */
+.cover-logo {
+  display: none;
 }
 
-.slidev-layout h2,
-h2 {
-  color: #1e3a8a;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
-.slidev-layout .tile {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.slidev-layout h4.tile-header {
-  color: #1e3a8a;
-  font-weight: 600;
-  font-size: 0.95rem;
-  margin: 0;
-}
-
-.slidev-layout p,
-p {
-  color: #6b7280;
-  margin-bottom: 1rem;
-}
-
-.slidev-layout code,
-code {
-  color: #9333ea;
-  background: #f3f4f6;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.slidev-layout .tile-card {
-  background: #f3f4f6;
-  border-radius: 6px;
-  padding: 0.4rem 0.5rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+/* Align the inline social icons (carbon logos) with the link text on the
+   presenter slide, and give them a touch of breathing room before each label. */
+.person-bio svg {
+  display: inline-block;
+  vertical-align: -0.15em;
+  margin-right: 0.15em;
 }
