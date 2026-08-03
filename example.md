@@ -12,18 +12,6 @@ eyebrow: Slidev Addon
 Drop your `.bpmn` files straight into the deck. No screenshots, no manual exports.
 
 ---
-layout: person
-name: Marco Schäck
-role: Squad Lead · Process Development at Miragon
-photo: /marco.png
-eyebrow: The developer behind it
-accent: blue
-side: left
----
-
-Software engineer at Miragon, working on process automation and clean, developer-friendly tooling. Open-source author behind **emaarco**, building around BPMN, Camunda, and the workflows that connect them.
-
----
 layout: hero
 eyebrow: Why this addon
 accent: blue
@@ -122,6 +110,17 @@ A full modeler canvas for workshops. Set an `engine` for its properties panel.
 | `transactionBoundaries` | boolean | Overlay Camunda 7 boundaries |
 
 `<BpmnModeler bpmnFilePath="/newsletter.bpmn" engine="zeebe" height="325px" />`
+
+---
+layout: person
+name: Marco Schäck
+photo: /marco.png
+eyebrow: The developer behind it
+accent: blue
+side: left
+---
+
+Open-source engineer building tooling around BPMN, Camunda, and process automation, as **emaarco**. Find me on [LinkedIn](https://linkedin.com/in/schaeckm) and [Medium](https://medium.com/@emaarco).
 
 ---
 layout: closing

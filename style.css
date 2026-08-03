@@ -1,0 +1,11 @@
+/*
+ * Global overrides for the example deck. Auto-imported by Slidev because it sits
+ * next to example.md. Not part of the published addon (excluded via package.json#files).
+ */
+
+/* Hide the theme's Miragon logo on the cover slide: this is a personal addon deck,
+   not a Miragon-branded talk. The toolkit's cover layout has no prop for this, so
+   we override its .cover-logo element here. */
+.cover-logo {
+  display: none;
+}
