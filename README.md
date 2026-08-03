@@ -18,7 +18,7 @@ That's it — your BPMN diagrams are ready to present!
 
 ## Example Slide
 
-![Example BPMN diagram in Slidev](./docs/bpmn.gif)
+![Example BPMN diagram in Slidev](./docs/bpmn-example.png)
 
 ## 📦 Installation
 
