@@ -31,7 +31,6 @@ onMounted(() => {
 async function loadAndRenderBpmn(path: string): Promise<void> {
   const bpmnXml = await fetchBpmnXml(path)
 
-  // Create off-screen container for bpmn-js rendering (requires DOM element)
   const container = document.createElement('div')
   container.style.width = '1920px'
   container.style.height = '1080px'
@@ -52,12 +51,9 @@ async function loadAndRenderBpmn(path: string): Promise<void> {
     // Strip potentially dangerous elements from the SVG
     svgDoc.querySelectorAll('script, foreignObject').forEach(el => el.remove())
 
-    // Expand viewBox to add padding around diagram edges, and pin the SVG's
-    // INTRINSIC size to those dimensions. Sizing via max-width/max-height (see
-    // the scoped styles) then only ever scales the diagram DOWN to fit its box —
-    // it can never collapse to 0. Relying on the SVG's own height:100% instead
-    // fails inside a flex parent (e.g. the toolkit's DiagramFrame), leaving the
-    // slide blank.
+    // Pad the viewBox and pin the SVG's intrinsic size so the scoped
+    // max-width/max-height only scale it down. height:100% would collapse
+    // to 0 inside a flex parent (e.g. the toolkit's DiagramFrame).
     const viewBox = svgElement.getAttribute('viewBox')
     if (viewBox) {
       const [x, y, w, h] = viewBox.split(' ').map(Number)
@@ -99,9 +95,7 @@ async function loadAndRenderBpmn(path: string): Promise<void> {
   min-height: 0;
 }
 
-/* Fit the diagram to its box without ever collapsing: the SVG carries its own
-   intrinsic width/height, and these caps only scale it down when it would
-   overflow. Works whether the container height is fixed or auto. */
+/* Cap to the box; the SVG's intrinsic size keeps it from collapsing to 0. */
 .bpmn-static-inner :deep(svg) {
   max-width: 100%;
   max-height: 100%;

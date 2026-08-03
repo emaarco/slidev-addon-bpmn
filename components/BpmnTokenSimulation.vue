@@ -140,7 +140,6 @@ async function waitForContainer(target: Ref<HTMLDivElement | null>): Promise<boo
  */
 async function renderBpmn() {
 
-  // Prevent duplicate rendering
   if (isRendered.value) return
   isRendered.value = true
 
