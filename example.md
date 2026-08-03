@@ -1,104 +1,132 @@
 ---
+theme: '@miragon/slidev-toolkit'
 colorSchema: light
+highlighter: shiki
+transition: slide-up
+layout: cover
+eyebrow: Slidev Addon
 ---
 
-# slidev-addon-bpmn
+# BPMN in **Slidev**
 
-Embed your BPMN models präzise and gscheit 🥨 – because screenshot Gefrickel is just zwider.
-Drop your `.bpmn` files directly into your Slidev.
-No manual export chaos, just saubere process diagrams!
-
-**Features:**
-- Static rendering for PDFs and presentations
-- Interactive token simulation for process demonstrations
-- Live BPMN modeling for workshops and trainings
+Drop your `.bpmn` files straight into the deck. No screenshots, no manual exports.
 
 ---
-
-## BPMN Diagrams
-
-The `Bpmn` component renders BPMN diagrams as static SVG images – koa screenshot Schmarrn, koa manual export Humbug, just clean SVG rendering that schaug richtig fesch aus!
-
-<Bpmn bpmnFilePath="./newsletter.bpmn" height="300px"></Bpmn>
-
+layout: person
+name: Marco Schäck
+role: Squad Lead · Process Development at Miragon
+photo: /marco.png
+eyebrow: The developer behind it
+accent: blue
+side: left
 ---
 
-## Interactive Token Simulation
-
-The `BpmnTokenSimulation` component adds animated token flow for process demonstrations – the tokens hupfan through your diagram like it's a Mordsgaudi! Your audience kapiert sofort how the workflow flows, koa langweiliges Gschwafel needed!
-
-<BpmnTokenSimulation bpmnFilePath="./newsletter.bpmn" height="350px"></BpmnTokenSimulation>
+Software engineer at Miragon, working on process automation and clean, developer-friendly tooling. Open-source author behind **emaarco**, building around BPMN, Camunda, and the workflows that connect them.
 
 ---
-
-## Komponenten Side-by-Side
-
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1.5rem;">
-  <div class="tile">
-    <h4 class="tile-header">Static</h4>
-    <div class="tile-card">
-      <Bpmn bpmnFilePath="./newsletter.bpmn" height="170px"></Bpmn>
-    </div>
-  </div>
-  <div class="tile">
-    <h4 class="tile-header">Token Simulation</h4>
-    <div class="tile-card">
-      <BpmnTokenSimulation bpmnFilePath="./newsletter.bpmn" height="170px"></BpmnTokenSimulation>
-    </div>
-  </div>
-  <div class="tile">
-    <h4 class="tile-header">Modeler</h4>
-    <div class="tile-card">
-      <BpmnModeler bpmnFilePath="./loan-approval.bpmn" engine="camunda7" height="170px"></BpmnModeler>
-    </div>
-  </div>
-  <div></div>
-</div>
-
+layout: hero
+eyebrow: Why this addon
+accent: blue
 ---
 
-## Zeebe Modeler (Camunda 8)
+# Model once, embed the **real** diagram.
 
-Pass `engine="zeebe"` and you get a full properties panel with Zeebe extensions – task definitions, headers, subscriptions, the whole Klumpatsch! Perfekt for workshops targeting Camunda 8 where executable details matter just as much as the shape.
-
-<BpmnModeler bpmnFilePath="./newsletter.bpmn" engine="zeebe" height="320px"></BpmnModeler>
+Static SVG, animated token flow, or a live modeler; all from the same `.bpmn` file.
 
 ---
-
-## Camunda 7 Modeler
-
-Für die Camunda-7-Fraktion: `engine="camunda7"` swaps in the Camunda Platform properties panel, so you can wire up expressions, delegate beans and assignees live – ganz ohne Tool-Hopserei.
-
-<BpmnModeler bpmnFilePath="./loan-approval.bpmn" engine="camunda7" height="320px"></BpmnModeler>
-
+layout: bpmn
+title: Static BPMN diagrams
+eyebrow: Bpmn
+accent: blue
+diagram: /newsletter.bpmn
+mode: static
+height: 300px
 ---
 
-## Transaction Boundaries
-
-Set `:transaction-boundaries="true"` (default `false`) and the Camunda-7-Modeler overlays the transaction boundaries – so siagt ma sofort, wo d'Engine an async continuation an Commit macht. Braucht `engine="camunda7"`, weil's `camunda:asyncBefore`/`asyncAfter` ausliest.
-
-<BpmnModeler bpmnFilePath="./loan-approval.bpmn" engine="camunda7" :transaction-boundaries="true" height="320px"></BpmnModeler>
+Rendered as a clean, static SVG. Best for PDF exports and print.
 
 ---
-
-## Blank Canvas Modeler
-
-No `engine` prop? Dann gibt's nur die Zeichenfläche für live modeling from scratch. Und weil so a Blank Canvas anfangs nur a einzigs Element hat, kannst mit `:max-scale` de Zoom-Grenz selba festlegn – standardmäßig 2, do auf 1.5 gsetzt.
-
-<BpmnModeler :max-scale="1.5" height="320px"></BpmnModeler>
-
+layout: content
+title: The Bpmn component
+eyebrow: Bpmn
+accent: blue
 ---
 
-## Modeler + Token Simulation
+Renders a `.bpmn` file as a static, inline SVG. Ideal for print and PDF export.
 
-Set `:token-simulation="true"` and the fullscreen modeler gains a toggle to switch between *editing* and *simulating* – erst 's Modell baun, dann glei de Tokens durchlaufn lassn, ohne d'Komponente z'wechseln. Kombinierbar mit jeder Engine.
+| Prop | Type | Description |
+|---|---|---|
+| `bpmnFilePath` | string | Path to the file (required) |
+| `width` | string | Canvas width (default 100%) |
+| `height` | string | Canvas height (default auto) |
 
-<BpmnModeler bpmnFilePath="./newsletter.bpmn" engine="zeebe" :token-simulation="true" height="320px"></BpmnModeler>
+`<Bpmn bpmnFilePath="/newsletter.bpmn" height="300px" />`
 
 ---
+layout: bpmn
+title: Interactive token simulation
+eyebrow: Bpmn-Token-Simulation
+accent: blue
+diagram: /newsletter.bpmn
+mode: token
+height: 325px
+---
 
-## Small Diagrams Fill the Space
+Animated token flow makes the process instantly clear to your audience.
 
-Sauba! A kloans Modell duad si jetz aa breit macha, statt mickrig in da Mittn zu hocka – de kompaktn Diagramm wachsn schee mit, a wahre Mordsgaudi fürs Aug!
+---
+layout: content
+title: The BpmnTokenSimulation component
+eyebrow: Bpmn-Token-Simulation
+accent: blue
+---
 
-<BpmnTokenSimulation bpmnFilePath="./loan-approval.bpmn" width="90%" height="360px"></BpmnTokenSimulation>
+Plays an animated token through the process, with a built-in fullscreen view.
+
+| Prop | Type | Description |
+|---|---|---|
+| `bpmnFilePath` | string | Path to the file (required) |
+| `fullscreen` | boolean | Show the expand button (default true) |
+| `maxScale` | number | Cap the auto-zoom factor |
+| `height` | string | Canvas height (default auto) |
+
+`<BpmnTokenSimulation bpmnFilePath="/newsletter.bpmn" height="325px" />`
+
+---
+layout: bpmn
+title: Live BPMN modeler
+eyebrow: Bpmn-Modeler
+accent: blue
+diagram: /newsletter.bpmn
+mode: modeler
+engine: zeebe
+height: 325px
+---
+
+Edit the diagram live in a workshop, with an engine-specific properties panel.
+
+---
+layout: content
+title: The BpmnModeler component
+eyebrow: Bpmn-Modeler
+accent: blue
+---
+
+A full modeler canvas for workshops. Set an `engine` for its properties panel.
+
+| Prop | Type | Description |
+|---|---|---|
+| `bpmnFilePath` | string | Path to the file (omit for blank canvas) |
+| `engine` | zeebe / camunda7 | Adds the matching properties panel |
+| `tokenSimulation` | boolean | Token flow inside the modeler |
+| `transactionBoundaries` | boolean | Overlay Camunda 7 boundaries |
+
+`<BpmnModeler bpmnFilePath="/newsletter.bpmn" engine="zeebe" height="325px" />`
+
+---
+layout: closing
+eyebrow: Get started
+footer: github.com/emaarco/slidev-addon-bpmn
+---
+
+# Drop your **.bpmn** in.
