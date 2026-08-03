@@ -161,4 +161,3 @@ To develop locally: clone the repo, run `npm install`, then `npm run dev` to tes
 
 - [bpmn-js](https://github.com/bpmn-io/bpmn-js) by [bpmn.io](https://bpmn.io/)
 - Inspired by [slidev-addon-excalidraw](https://github.com/haydenull/slidev-addon-excalidraw)
-- [bavaria-ipsum](https://bavaria-ipsum.de/) - for making the example slide a little more entertaining 🥨
