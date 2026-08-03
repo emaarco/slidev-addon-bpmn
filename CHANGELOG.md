@@ -26,6 +26,13 @@
 
 * deploy live demo to GitHub Pages ([#27](https://github.com/emaarco/slidev-addon-bpmn/issues/27)) ([31b93b5](https://github.com/emaarco/slidev-addon-bpmn/commit/31b93b5a2af1899027dff55001e8b58e93099156))
 
+## [1.10.1](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.10.0...v1.10.1) (2026-08-03)
+
+
+### Bug Fixes
+
+* migrate example deck to slidev-toolkit and repair static Bpmn rendering ([#91](https://github.com/emaarco/slidev-addon-bpmn/issues/91)) ([e632db9](https://github.com/emaarco/slidev-addon-bpmn/commit/e632db9da44f9631267d4a78838f4b80733d66ec))
+
 ## [1.10.0](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.9.0...v1.10.0) (2026-07-30)
 
 
