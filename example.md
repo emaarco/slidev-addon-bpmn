@@ -120,12 +120,4 @@ accent: blue
 side: left
 ---
 
-Open-source engineer building tooling around BPMN, Camunda, and process automation, as **emaarco**. Find me on [LinkedIn](https://linkedin.com/in/schaeckm) and [Medium](https://medium.com/@emaarco).
-
----
-layout: closing
-eyebrow: Get started
-footer: github.com/emaarco/slidev-addon-bpmn
----
-
-# Drop your **.bpmn** in.
+Open-source engineer building solutions around BPMN, DMN and process automation in general, as **emaarco**. Find me on [LinkedIn](https://linkedin.com/in/schaeckm), [Medium](https://medium.com/@emaarco) and [GitHub](https://github.com/emaarco).
