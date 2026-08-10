@@ -26,5 +26,6 @@ jobs:
 
       - run: npm ci
       - run: npm run lint:deps
+      - run: npm run knip
       - run: npm test
       - run: npm run build

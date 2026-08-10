@@ -12,7 +12,9 @@
     "build:pages": "slidev build example.md --base /slidev-addon-bpmn/ --out dist",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint:deps": "depcruise components composables engines shared --config .dependency-cruiser.cjs --output-type err"
+    "lint:deps": "depcruise components composables engines shared --config .dependency-cruiser.cjs --output-type err",
+    "knip": "knip",
+    "knip:fix": "knip --fix"
   },
   "author": "Marco Schäck (https://github.com/emaarco)",
   "license": "MIT",
@@ -29,13 +31,14 @@
   "devDependencies": {
     "@miragon/slidev-toolkit": "1.12.0",
     "@slidev/cli": "52.18.1",
-    "@slidev/theme-default": "0.25.0",
     "@vitejs/plugin-vue": "6.0.8",
     "@vue/test-utils": "2.4.11",
     "dependency-cruiser": "18.1.0",
     "jsdom": "29.1.1",
+    "knip": "6.32.0",
     "playwright-chromium": "1.62.1",
     "portless": "0.15.5",
+    "typescript": "5.9.3",
     "vitest": "4.1.10"
   },
   "keywords": [

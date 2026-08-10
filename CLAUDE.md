@@ -24,7 +24,25 @@ npm run export
 
 # Export presentation to PNG screenshots
 npm run screenshot
+
+# Lint the module graph (layering + no-circular rules)
+npm run lint:deps
+
+# Find unused files, exports and dependencies (knip)
+npm run knip
 ```
+
+## Code Hygiene
+
+Two static-analysis gates run in the `Build` CI workflow (`.github/workflows/build.yml`):
+
+- **`lint:deps`** (dependency-cruiser) — enforces the source layering in `.dependency-cruiser.cjs`.
+- **`knip`** (config in `knip.ts`) — flags unused files, exports and dependencies.
+  Entry points are `setup/main.ts` (Slidev auto-loads it to register the components)
+  and `components/*.vue` (the published surface external decks import). `@slidev/client`
+  and `@slidev/types` come from the `@slidev/cli` peer dependency, and
+  `@miragon/slidev-toolkit` is the theme in `example.md`'s frontmatter — all three are
+  imported outside what knip can see, so they're listed under `ignoreDependencies`.
 
 ## Architecture
 
