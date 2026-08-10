@@ -3,7 +3,7 @@ const DIAGRAM_PADDING_RATIO = 0.05
 
 // Default cap on how far a diagram may be enlarged past its native pixel size.
 // Overridable per call (surfaced as a component prop) via fitDiagram's maxScale arg.
-export const DEFAULT_MAX_SCALE = 2
+const DEFAULT_MAX_SCALE = 2
 
 // canvas: bpmn-js Canvas service (typed loosely to mirror existing call-sites).
 export function fitDiagram(
