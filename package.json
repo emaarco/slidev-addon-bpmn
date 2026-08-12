@@ -29,11 +29,11 @@
     "zeebe-bpmn-moddle": "1.17.0"
   },
   "devDependencies": {
-    "@miragon/slidev-toolkit": "1.12.0",
-    "@slidev/cli": "52.18.1",
+    "@miragon/slidev-toolkit": "1.15.0",
+    "@slidev/cli": "52.19.0",
     "@vitejs/plugin-vue": "6.0.8",
     "@vue/test-utils": "2.4.11",
-    "dependency-cruiser": "18.1.0",
+    "dependency-cruiser": "18.1.1",
     "jsdom": "30.0.1",
     "knip": "6.32.0",
     "playwright-chromium": "1.62.1",
