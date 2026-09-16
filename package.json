@@ -19,8 +19,8 @@
   "author": "Marco Schäck (https://github.com/emaarco)",
   "license": "MIT",
   "dependencies": {
-    "@bpmn-io/properties-panel": "3.52.0",
-    "bpmn-js": "18.25.1",
+    "@bpmn-io/properties-panel": "3.54.1",
+    "bpmn-js": "18.28.0",
     "bpmn-js-properties-panel": "5.65.0",
     "bpmn-js-token-simulation": "0.40.0",
     "camunda-bpmn-js-behaviors": "1.18.0",
@@ -35,8 +35,8 @@
     "@vue/test-utils": "2.5.0",
     "dependency-cruiser": "18.2.0",
     "jsdom": "30.0.1",
-    "knip": "6.32.3",
-    "playwright-chromium": "1.62.1",
+    "knip": "6.35.1",
+    "playwright-chromium": "1.63.0",
     "portless": "0.15.6",
     "typescript": "7.0.2",
     "vitest": "4.1.11"
