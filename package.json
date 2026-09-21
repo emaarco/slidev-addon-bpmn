@@ -62,10 +62,14 @@
     "**/*.css"
   ],
   "peerDependencies": {
-    "@slidev/cli": ">=50"
+    "@slidev/cli": ">=50",
+    "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
     "@slidev/cli": {
+      "optional": false
+    },
+    "vue": {
       "optional": false
     }
   },
