@@ -26,6 +26,13 @@
 
 * deploy live demo to GitHub Pages ([#27](https://github.com/emaarco/slidev-addon-bpmn/issues/27)) ([31b93b5](https://github.com/emaarco/slidev-addon-bpmn/commit/31b93b5a2af1899027dff55001e8b58e93099156))
 
+## [1.10.2](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.10.1...v1.10.2) (2026-09-21)
+
+
+### Bug Fixes
+
+* declare vue as peer dependency ([#112](https://github.com/emaarco/slidev-addon-bpmn/issues/112)) ([52ce0d2](https://github.com/emaarco/slidev-addon-bpmn/commit/52ce0d24510e9b59473633677b22436e317785b2))
+
 ## [1.10.1](https://github.com/emaarco/slidev-addon-bpmn/compare/v1.10.0...v1.10.1) (2026-08-03)
 
 
