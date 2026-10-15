@@ -162,7 +162,7 @@ async function renderBpmn() {
     if (!currentXml.value) {
       currentXml.value = await fetchDiagramFile(props.bpmnFilePath)
     }
-    if (props.scenariosFilePath && scenarios === undefined) {
+    if (props.engine && props.scenariosFilePath && scenarios === undefined) {
       scenarios = JSON.parse(await fetchDiagramFile(props.scenariosFilePath))
     }
 

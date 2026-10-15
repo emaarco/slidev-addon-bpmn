@@ -18,7 +18,6 @@ vi.mock('bpmn-js-token-simulation/lib/viewer', () => ({
   default: {},
 }))
 
-
 const { slideEnterCallbacks } = vi.hoisted(() => ({
   slideEnterCallbacks: [] as Array<() => void>,
 }))
