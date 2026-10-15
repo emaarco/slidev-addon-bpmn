@@ -16,6 +16,7 @@ export default defineConfig({
       'dmn-js/lib/Modeler',
       'dmn-js-properties-panel',
       '@emaarco/dmn-js-simulation',
+      '@emaarco/bpmn-js-data-simulation',
       '@miragon/team-topologies-renderer',
       '@miragon/team-topologies-schema-model',
       '@miragon/wardley-renderer',

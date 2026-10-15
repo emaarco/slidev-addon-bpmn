@@ -1,0 +1,60 @@
+{
+  "scenarios": [
+    {
+      "id": "small-order",
+      "name": "Small order, good credit",
+      "description": "A city bike with lock and insurance. The credit check returns a score of 720.",
+      "variables": {
+        "customer": { "id": "C-1042", "name": "Ada Lovelace" },
+        "orderTotal": 1290,
+        "insurance": true,
+        "accessories": ["lock", "lights"]
+      },
+      "taskResults": {
+        "Task_CheckCredit": { "score": 720 }
+      }
+    },
+    {
+      "id": "large-order",
+      "name": "Large order, approved in review",
+      "description": "An e-cargo bike above 5,000 € goes to a manual review, which approves it.",
+      "variables": {
+        "customer": { "id": "C-2077", "name": "Grace Hopper" },
+        "orderTotal": 6890,
+        "insurance": false,
+        "accessories": []
+      },
+      "taskResults": {
+        "Task_CheckCredit": { "score": 680 },
+        "Task_Review": { "approved": true }
+      }
+    },
+    {
+      "id": "bad-credit",
+      "name": "Bad credit",
+      "description": "The credit check returns 420, so no condition is true and the default flow rejects the order.",
+      "variables": {
+        "customer": { "id": "C-3001", "name": "Charles Babbage" },
+        "orderTotal": 890,
+        "insurance": false,
+        "accessories": []
+      },
+      "taskResults": {
+        "Task_CheckCredit": { "score": 420 }
+      }
+    },
+    {
+      "id": "missing-total",
+      "name": "Order total missing",
+      "description": "orderTotal is not set, so the condition fails and the token stops. Add it via Edit under Instance, then press ▶ on the gateway.",
+      "variables": {
+        "customer": { "id": "C-4711", "name": "Alan Turing" },
+        "insurance": false,
+        "accessories": []
+      },
+      "taskResults": {
+        "Task_CheckCredit": { "score": 750 }
+      }
+    }
+  ]
+}

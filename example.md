@@ -108,6 +108,28 @@ Plays an animated token through the process, with a built-in fullscreen view.
 `<BpmnTokenSimulation bpmnFilePath="/newsletter.bpmn" height="325px" />`
 
 ---
+layout: content
+title: Data simulation (Zeebe)
+eyebrow: Bpmn-Token-Simulation
+accent: blue
+---
+
+With `engine="zeebe"`, FEEL conditions and io mappings decide the path.
+
+<BpmnTokenSimulation bpmnFilePath="/bike-order.bpmn" engine="zeebe" scenariosFilePath="/bike-order.scenarios.json" height="320px" />
+
+---
+layout: content
+title: Data simulation (Camunda 7)
+eyebrow: Bpmn-Token-Simulation
+accent: blue
+---
+
+With `engine="camunda7"`, the scenario mocks the score and JUEL picks the flow.
+
+<BpmnTokenSimulation bpmnFilePath="/loan-approval.bpmn" engine="camunda7" scenariosFilePath="/loan-approval.scenarios.json" height="320px" />
+
+---
 layout: bpmn
 title: Live BPMN modeler
 eyebrow: Bpmn-Modeler
