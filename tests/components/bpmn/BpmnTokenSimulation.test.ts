@@ -28,6 +28,7 @@ vi.mock('@slidev/client', () => ({
   }),
 }))
 
+import DataSimulationModule from '@emaarco/bpmn-js-data-simulation'
 import BpmnTokenSimulation from '../../../components/bpmn/BpmnTokenSimulation.vue'
 
 function mockFetchSuccess(xml = '<definitions></definitions>') {
@@ -35,6 +36,21 @@ function mockFetchSuccess(xml = '<definitions></definitions>') {
     ok: true,
     text: () => Promise.resolve(xml),
   }))
+}
+
+function mockFetchByPath(files: Record<string, string>) {
+  vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
+    const path = Object.keys(files).find(key => url.endsWith(key))
+    return Promise.resolve({ ok: true, text: () => Promise.resolve(files[path!]) })
+  }))
+}
+
+async function renderWith(props: Record<string, unknown>) {
+  const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn', ...props } })
+  giveContainerDimensions(wrapper)
+  await new Promise(resolve => setTimeout(resolve, 50))
+  await flushPromises()
+  return MockBpmnViewer.mock.calls[0][0]
 }
 
 function mockFetchFailure() {
@@ -259,5 +275,39 @@ describe('BpmnTokenSimulation.vue', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('Failed to load BPMN')
+  })
+
+  it('runs the plain token simulation without an engine', async () => {
+    mockFetchSuccess()
+    const options = await renderWith({})
+
+    expect(options.additionalModules).not.toContain(DataSimulationModule)
+    expect(options.dataSimulation).toBeUndefined()
+  })
+
+  it('adds the data simulation with the engine moddle and the fetched scenarios', async () => {
+    const scenarios = { scenarios: [{ id: 'small-order' }] }
+    mockFetchByPath({ 'test.bpmn': '<definitions></definitions>', 'test.scenarios.json': JSON.stringify(scenarios) })
+    const options = await renderWith({ engine: 'zeebe', scenariosFilePath: 'test.scenarios.json' })
+
+    expect(options.additionalModules).toContain(DataSimulationModule)
+    expect(Object.keys(options.moddleExtensions)).toEqual(['zeebe'])
+    expect(options.dataSimulation).toEqual({ engine: 'zeebe', scenarios })
+  })
+
+  it('runs the plain token simulation for an engine without scenarios', async () => {
+    mockFetchSuccess()
+    const options = await renderWith({ engine: 'zeebe' })
+
+    expect(options.additionalModules).not.toContain(DataSimulationModule)
+    expect(options.dataSimulation).toBeUndefined()
+  })
+
+  it('reads Camunda 7 mappings with the camunda moddle', async () => {
+    mockFetchByPath({ 'test.bpmn': '<definitions></definitions>', 'test.scenarios.json': '{"scenarios":[]}' })
+    const options = await renderWith({ engine: 'camunda7', scenariosFilePath: 'test.scenarios.json' })
+
+    expect(Object.keys(options.moddleExtensions)).toEqual(['camunda'])
+    expect(options.dataSimulation).toEqual({ engine: 'camunda7', scenarios: { scenarios: [] } })
   })
 })

@@ -1,0 +1,20 @@
+{
+  "scenarios": [
+    {
+      "id": "good-score",
+      "name": "Good score",
+      "description": "The scoring service returns 720, so the loan goes to approval.",
+      "taskResults": {
+        "Activity_ScoreApplicant": { "score": 720 }
+      }
+    },
+    {
+      "id": "bad-score",
+      "name": "Bad score",
+      "description": "The scoring service returns 540, so the loan is rejected.",
+      "taskResults": {
+        "Activity_ScoreApplicant": { "score": 540 }
+      }
+    }
+  ]
+}

@@ -71,6 +71,11 @@ import 'bpmn-js/dist/assets/bpmn-js.css'
 import tokenSimulation from 'bpmn-js-token-simulation/lib/viewer'
 import { onSlideEnter } from '@slidev/client'
 import 'bpmn-js-token-simulation/assets/css/bpmn-js-token-simulation.css'
+import DataSimulationModule from '@emaarco/bpmn-js-data-simulation'
+import '@emaarco/bpmn-js-data-simulation/assets/bpmn-js-data-simulation.css'
+import zeebeModdle from 'zeebe-bpmn-moddle/resources/zeebe.json'
+import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json'
+import type { Engine } from '../../plugins/bpmn/engines/types'
 import { useDiagramFile } from '../../shared/lib/useDiagramFile'
 import { fitDiagram } from '../../shared/lib/fitDiagram'
 import ToolbarButton from '../../shared/ui/ToolbarButton.vue'
@@ -84,6 +89,7 @@ const fullscreenContainerRef = ref<HTMLDivElement | null>(null)
 const isRendered = ref(false)
 const isFullscreen = ref(false)
 const currentXml = ref<string | null>(null)
+let scenarios: unknown
 let viewer: InstanceType<typeof BpmnViewer> | null = null
 let fullscreenViewer: InstanceType<typeof BpmnViewer> | null = null
 let resizeObserver: ResizeObserver | null = null
@@ -99,6 +105,8 @@ const props = withDefaults(defineProps<{
   height?: string
   fullscreen?: boolean
   maxScale?: number
+  engine?: Engine
+  scenariosFilePath?: string
 }>(), {
   width: '100%',
   height: 'auto',
@@ -154,6 +162,9 @@ async function renderBpmn() {
     if (!currentXml.value) {
       currentXml.value = await fetchDiagramFile(props.bpmnFilePath)
     }
+    if (props.engine && props.scenariosFilePath && scenarios === undefined) {
+      scenarios = JSON.parse(await fetchDiagramFile(props.scenariosFilePath))
+    }
 
     viewer = createSimulationViewer(containerRef.value!)
     await viewer.importXML(currentXml.value!)
@@ -172,9 +183,17 @@ async function renderBpmn() {
 
 function createSimulationViewer(container: HTMLDivElement): InstanceType<typeof BpmnViewer> {
   const disableSnackbarModule = {notifications: ['value', {showNotification: () => {}}]}
+  if (!props.engine || !props.scenariosFilePath) {
+    return new BpmnViewer({
+      container,
+      additionalModules: [tokenSimulation, disableSnackbarModule],
+    })
+  }
   return new BpmnViewer({
     container,
-    additionalModules: [tokenSimulation, disableSnackbarModule],
+    additionalModules: [tokenSimulation, DataSimulationModule, disableSnackbarModule],
+    moddleExtensions: props.engine === 'camunda7' ? { camunda: camundaModdle } : { zeebe: zeebeModdle },
+    dataSimulation: { engine: props.engine, scenarios },
   })
 }
 
