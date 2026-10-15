@@ -183,7 +183,7 @@ async function renderBpmn() {
 
 function createSimulationViewer(container: HTMLDivElement): InstanceType<typeof BpmnViewer> {
   const disableSnackbarModule = {notifications: ['value', {showNotification: () => {}}]}
-  if (!props.engine) {
+  if (!props.engine || !props.scenariosFilePath) {
     return new BpmnViewer({
       container,
       additionalModules: [tokenSimulation, disableSnackbarModule],

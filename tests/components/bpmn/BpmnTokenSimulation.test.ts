@@ -296,11 +296,19 @@ describe('BpmnTokenSimulation.vue', () => {
     expect(options.dataSimulation).toEqual({ engine: 'zeebe', scenarios })
   })
 
-  it('reads Camunda 7 mappings with the camunda moddle', async () => {
+  it('runs the plain token simulation for an engine without scenarios', async () => {
     mockFetchSuccess()
-    const options = await renderWith({ engine: 'camunda7' })
+    const options = await renderWith({ engine: 'zeebe' })
+
+    expect(options.additionalModules).not.toContain(DataSimulationModule)
+    expect(options.dataSimulation).toBeUndefined()
+  })
+
+  it('reads Camunda 7 mappings with the camunda moddle', async () => {
+    mockFetchByPath({ 'test.bpmn': '<definitions></definitions>', 'test.scenarios.json': '{"scenarios":[]}' })
+    const options = await renderWith({ engine: 'camunda7', scenariosFilePath: 'test.scenarios.json' })
 
     expect(Object.keys(options.moddleExtensions)).toEqual(['camunda'])
-    expect(options.dataSimulation).toEqual({ engine: 'camunda7', scenarios: undefined })
+    expect(options.dataSimulation).toEqual({ engine: 'camunda7', scenarios: { scenarios: [] } })
   })
 })
