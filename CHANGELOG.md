@@ -26,6 +26,13 @@
 
 * deploy live demo to GitHub Pages ([#27](https://github.com/emaarco/slidev-addon-bpmn/issues/27)) ([31b93b5](https://github.com/emaarco/slidev-addon-bpmn/commit/31b93b5a2af1899027dff55001e8b58e93099156))
 
+## [2.2.0](https://github.com/emaarco/slidev-addon-diagram-js/compare/v2.1.1...v2.2.0) (2026-10-15)
+
+
+### Features
+
+* simulate BPMN processes with process data ([#136](https://github.com/emaarco/slidev-addon-diagram-js/issues/136)) ([e26de86](https://github.com/emaarco/slidev-addon-diagram-js/commit/e26de866a64a3805334d840cc3e5c53fe82e3cc9))
+
 ## [2.1.1](https://github.com/emaarco/slidev-addon-diagram-js/compare/v2.1.0...v2.1.1) (2026-10-06)
 
 

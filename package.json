@@ -1,6 +1,6 @@
 {
   "name": "slidev-addon-diagram-js",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "Display BPMN, DMN and other diagram-js based models in Slidev presentations",
   "type": "module",
   "scripts": {
