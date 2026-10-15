@@ -26,6 +26,13 @@
 
 * deploy live demo to GitHub Pages ([#27](https://github.com/emaarco/slidev-addon-bpmn/issues/27)) ([31b93b5](https://github.com/emaarco/slidev-addon-bpmn/commit/31b93b5a2af1899027dff55001e8b58e93099156))
 
+## [2.2.1](https://github.com/emaarco/slidev-addon-diagram-js/compare/v2.2.0...v2.2.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* show exclusive gateway markers in bike order example ([#138](https://github.com/emaarco/slidev-addon-diagram-js/issues/138)) ([e7fd857](https://github.com/emaarco/slidev-addon-diagram-js/commit/e7fd8576138c5610b5eb42fbff2d9f5e311b5772))
+
 ## [2.2.0](https://github.com/emaarco/slidev-addon-diagram-js/compare/v2.1.1...v2.2.0) (2026-10-15)
 
 
