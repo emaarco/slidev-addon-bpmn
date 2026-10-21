@@ -1,0 +1,76 @@
+name: Dependency repair
+
+on:
+  workflow_run:
+    workflows:
+      - "Build"
+    types: [completed]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    name: Repair the pull request
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.actor.login == 'dependabot[bot]' &&
+      github.event.workflow_run.pull_requests[0]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: claude-maintenance
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+      id-token: write
+    steps:
+      - name: Refuse to run with a pay-per-token credential
+        env:
+          API_CREDENTIAL_PRESENT: ${{ secrets.ANTHROPIC_API_KEY != '' || secrets.ANTHROPIC_AUTH_TOKEN != '' }}
+        run: test "$API_CREDENTIAL_PRESENT" = "false"
+
+      - name: Checkout the pull request branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+
+      - name: Switch auto-merge off
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.workflow_run.pull_requests[0].number }}
+        run: |
+          if [[ "$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json autoMergeRequest --jq '.autoMergeRequest != null')" == "true" ]]; then
+            gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --disable-auto
+          fi
+
+      - name: Repair with Claude
+        uses: anthropics/claude-code-action@6c690188da61cf16ee7debb28383ba67f02abb4c # v1.0.242
+        env:
+          CLAUDE_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "dependabot[bot]"
+          plugin_marketplaces: "https://github.com/emaarco/hogwarts.git"
+          plugins: "felix-felicis@emaarco"
+          prompt: "/felix-felicis:dependency-update-shepherd ${{ github.event.workflow_run.pull_requests[0].number }}"
+          use_commit_signing: true
+          claude_args: --disallowedTools "Bash(git push:*)" "Bash(git commit:*)" "Bash(git rebase:*)"
+
+      - name: Fail on unverified pull request commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.workflow_run.pull_requests[0].number }}
+        run: |
+          UNVERIFIED=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/commits" --jq '.[] | select(.commit.verification.verified | not) | .sha')
+          if [[ -n "$UNVERIFIED" ]]; then
+            echo "::error::Unverified commits block the merge: $UNVERIFIED"
+            exit 1
+          fi
