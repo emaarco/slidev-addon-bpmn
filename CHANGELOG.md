@@ -26,6 +26,13 @@
 
 * deploy live demo to GitHub Pages ([#27](https://github.com/emaarco/slidev-addon-bpmn/issues/27)) ([31b93b5](https://github.com/emaarco/slidev-addon-bpmn/commit/31b93b5a2af1899027dff55001e8b58e93099156))
 
+## [2.2.2](https://github.com/emaarco/slidev-addon-diagram-js/compare/v2.2.1...v2.2.2) (2026-10-23)
+
+
+### Bug Fixes
+
+* **deps:** update miragon renderers, bpmn-js, dmn-js and dev tooling ([#142](https://github.com/emaarco/slidev-addon-diagram-js/issues/142)) ([2f91364](https://github.com/emaarco/slidev-addon-diagram-js/commit/2f91364601f9049f006f12d08b841e1e0715f5c1))
+
 ## [2.2.1](https://github.com/emaarco/slidev-addon-diagram-js/compare/v2.2.0...v2.2.1) (2026-10-15)
 
 
