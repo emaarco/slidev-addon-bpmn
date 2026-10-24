@@ -1,15 +1,14 @@
 <template>
   <StaticDiagram
-    diagramKind="Wardley Map"
+    :notation="notation"
     :filePath="props.wardleyMapFilePath"
     :width="props.width"
     :height="props.height"
-    :exportSvg="exportWardleyMapSvg"
   />
 </template>
 
 <script setup lang="ts">
-import { exportWardleyMapSvg } from '../../plugins/wardley-maps/wardleyMap'
+import { WardleyMapNotation } from '../../plugins/wardley-maps/WardleyMapNotation'
 import StaticDiagram from '../../shared/ui/StaticDiagram.vue'
 
 const props = withDefaults(defineProps<{
@@ -20,4 +19,6 @@ const props = withDefaults(defineProps<{
   width: '100%',
   height: 'auto',
 })
+
+const notation = new WardleyMapNotation()
 </script>

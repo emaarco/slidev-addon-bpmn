@@ -4,7 +4,7 @@ import {
   CamundaPropertiesProviderModule,
 } from 'dmn-js-properties-panel'
 import camundaModdle from 'camunda-dmn-moddle/resources/camunda.json'
-import type { EngineConfig } from './types'
+import type { EngineConfig } from '../../../shared/lib/engineConfig'
 
 /**
  * Camunda Platform properties panel for the DMN modeler.

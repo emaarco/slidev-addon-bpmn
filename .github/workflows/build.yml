@@ -25,6 +25,7 @@ jobs:
           files: package.json
 
       - run: npm ci
+      - run: npm run lint
       - run: npm run lint:deps
       - run: npm run knip
       - run: npm test

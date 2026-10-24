@@ -1,54 +1,68 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 
-const {
-  mockViewerImportXML, mockViewerOpen, mockGetViews, mockViewerDestroy, mockGetActiveViewer, MockDmnViewer,
-  mockModelerImportXML, mockSaveXML, mockModelerDestroy, mockModelerGetActiveViewer, MockDmnModeler,
-} = vi.hoisted(() => ({
-  mockViewerImportXML: vi.fn(),
-  mockViewerOpen: vi.fn(),
-  mockGetViews: vi.fn(),
-  mockViewerDestroy: vi.fn(),
-  mockGetActiveViewer: vi.fn(),
-  MockDmnViewer: vi.fn(),
-  mockModelerImportXML: vi.fn(),
-  mockSaveXML: vi.fn(),
-  mockModelerDestroy: vi.fn(),
-  mockModelerGetActiveViewer: vi.fn(),
-  MockDmnModeler: vi.fn(),
-}))
+enableAutoUnmount(afterEach)
+
+const { MockDmnViewer, viewer, viewerCanvas, MockDmnModeler, modeler, modelerCanvas } = vi.hoisted(() => {
+  const viewerCanvas = { resized: vi.fn(), viewbox: vi.fn() }
+  const modelerCanvas = { resized: vi.fn(), viewbox: vi.fn() }
+  return {
+    MockDmnViewer: vi.fn(),
+    viewerCanvas,
+    viewer: {
+      importXML: vi.fn(),
+      getViews: vi.fn(),
+      open: vi.fn(),
+      getActiveViewer: vi.fn(),
+      destroy: vi.fn(),
+    },
+    MockDmnModeler: vi.fn(),
+    modelerCanvas,
+    modeler: {
+      importXML: vi.fn(),
+      saveXML: vi.fn(),
+      getActiveViewer: vi.fn(),
+      destroy: vi.fn(),
+    },
+  }
+})
 
 vi.mock('dmn-js/lib/Viewer', () => ({ default: MockDmnViewer }))
 vi.mock('dmn-js/lib/Modeler', () => ({ default: MockDmnModeler }))
-
-// Avoid importing the real properties-panel modules in unit tests.
 vi.mock('../../../plugins/dmn/engines/camunda', () => ({
   camundaEngine: { additionalModules: ['MODULE'], moddleExtensions: { camunda: {} } },
 }))
-
-const { slideEnterCallbacks } = vi.hoisted(() => ({ slideEnterCallbacks: [] as Array<() => void> }))
-vi.mock('@slidev/client', () => ({
-  onSlideEnter: vi.fn((cb: () => void) => { slideEnterCallbacks.push(cb) }),
-}))
+vi.mock('@slidev/client', () => ({ onSlideEnter: vi.fn() }))
 
 import DmnModeler from '../../../components/dmn/DmnModeler.vue'
 
 const DRD_VIEW = { type: 'drd' }
+const ORIGINAL_XML = '<definitions id="orig"></definitions>'
+const CHANGED_XML = '<definitions id="changed"></definitions>'
 
-function mockCanvas() {
-  // viewbox() returning undefined makes fitDiagram short-circuit harmlessly.
-  return { resized: vi.fn(), viewbox: () => undefined }
-}
-
-function mockFetchSuccess(xml = '<definitions></definitions>') {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, text: () => Promise.resolve(xml) }))
+function mockFetchSuccess(xml = ORIGINAL_XML) {
+  const fetchMock = vi.fn().mockResolvedValue({ ok: true, text: () => Promise.resolve(xml) })
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
 }
 
 function mockFetchFailure() {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }))
 }
 
-// Drain the requestAnimationFrame polyfill (setTimeout 0), nextTick and promise queues.
+function givePreviewSize(wrapper: VueWrapper) {
+  const element = wrapper.find('.live-diagram-canvas').element
+  Object.defineProperty(element, 'clientWidth', { value: 800, configurable: true })
+  Object.defineProperty(element, 'clientHeight', { value: 500, configurable: true })
+}
+
+function mountModeler(props: Record<string, unknown> = { dmnFilePath: 'test.dmn' }) {
+  const wrapper = mount(DmnModeler, { props })
+  givePreviewSize(wrapper)
+  return wrapper
+}
+
+// Drains the requestAnimationFrame polyfill (setTimeout 0), nextTick and the promise queue.
 async function settle() {
   for (let i = 0; i < 6; i++) {
     await new Promise(resolve => setTimeout(resolve, 0))
@@ -56,165 +70,208 @@ async function settle() {
   }
 }
 
+function bodyButton(title: string): HTMLButtonElement | undefined {
+  return [...document.body.querySelectorAll('button')].find(button => button.title === title)
+}
+
+async function clickBodyButton(title: string) {
+  bodyButton(title)!.click()
+  await settle()
+}
+
+async function openModeler(wrapper: VueWrapper) {
+  await wrapper.find('button[title="Open modeler"]').trigger('click')
+  await settle()
+}
+
+function modelerOptions(): any {
+  return MockDmnModeler.mock.calls[0][0]
+}
+
 describe('DmnModeler.vue', () => {
   beforeEach(() => {
-    slideEnterCallbacks.length = 0
+    viewer.importXML.mockResolvedValue(undefined)
+    viewer.open.mockResolvedValue(undefined)
+    viewer.getViews.mockReturnValue([DRD_VIEW])
+    viewer.getActiveViewer.mockReturnValue({ get: (name: string) => (name === 'canvas' ? viewerCanvas : undefined) })
+    MockDmnViewer.mockImplementation(function () { return viewer })
 
-    // waitForContainer relies on clientWidth/clientHeight; stub them positive so
-    // both the thumbnail and the (teleported) modeler container resolve immediately.
-    Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, value: 800 })
-    Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, value: 500 })
-
-    mockViewerImportXML.mockResolvedValue(undefined)
-    mockViewerOpen.mockResolvedValue(undefined)
-    mockGetViews.mockReturnValue([DRD_VIEW])
-    mockGetActiveViewer.mockReturnValue({ get: (n: string) => (n === 'canvas' ? mockCanvas() : undefined) })
-    MockDmnViewer.mockImplementation(function () {
-      return {
-        importXML: mockViewerImportXML,
-        getViews: mockGetViews,
-        open: mockViewerOpen,
-        getActiveViewer: mockGetActiveViewer,
-        destroy: mockViewerDestroy,
-      }
-    })
-
-    mockModelerImportXML.mockResolvedValue(undefined)
-    mockSaveXML.mockResolvedValue({ xml: '<definitions></definitions>' })
-    mockModelerGetActiveViewer.mockReturnValue({ get: (n: string) => (n === 'canvas' ? mockCanvas() : undefined) })
-    MockDmnModeler.mockImplementation(function () {
-      return {
-        importXML: mockModelerImportXML,
-        saveXML: mockSaveXML,
-        getActiveViewer: mockModelerGetActiveViewer,
-        destroy: mockModelerDestroy,
-      }
-    })
+    modeler.importXML.mockResolvedValue(undefined)
+    modeler.saveXML.mockResolvedValue({ xml: ORIGINAL_XML })
+    modeler.getActiveViewer.mockReturnValue({ get: (name: string) => (name === 'canvas' ? modelerCanvas : undefined) })
+    MockDmnModeler.mockImplementation(function () { return modeler })
 
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
-  afterEach(() => {
-    // @ts-expect-error - remove the prototype stubs added in beforeEach
-    delete HTMLElement.prototype.clientWidth
-    // @ts-expect-error
-    delete HTMLElement.prototype.clientHeight
-  })
-
-  it('shows loading state initially', async () => {
+  it('shows a loading state while the file is fetched', async () => {
     vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise(() => {})))
-    const wrapper = mount(DmnModeler, { props: { dmnFilePath: 'test.dmn' } })
+    const wrapper = mountModeler()
     await flushPromises()
+
     expect(wrapper.text()).toContain('Loading DMN diagram...')
+    expect(wrapper.find('button[title="Open modeler"]').exists()).toBe(false)
   })
 
-  it('renders the DRD thumbnail after successful load', async () => {
-    mockFetchSuccess('<definitions id="x"></definitions>')
-    mount(DmnModeler, { props: { dmnFilePath: 'test.dmn' } })
+  it('renders the DRD preview after a successful load', async () => {
+    mockFetchSuccess()
+    const wrapper = mountModeler()
     await settle()
 
-    expect(MockDmnViewer).toHaveBeenCalled()
-    expect(mockViewerImportXML).toHaveBeenCalledWith('<definitions id="x"></definitions>')
-    expect(mockViewerOpen).toHaveBeenCalledWith(DRD_VIEW)
+    expect(MockDmnViewer).toHaveBeenCalledWith({ container: wrapper.find('.live-diagram-canvas').element })
+    expect(viewer.importXML).toHaveBeenCalledWith(ORIGINAL_XML)
+    expect(viewer.open).toHaveBeenCalledWith(DRD_VIEW)
+    expect(wrapper.find('button[title="Open modeler"]').exists()).toBe(true)
   })
 
   it('keeps a small DRD at native size instead of enlarging it to fill the card', async () => {
-    const smallDiagramInLargeCard = {
+    viewerCanvas.viewbox.mockImplementation((box?: unknown) => box ? undefined : {
       inner: { x: 0, y: 0, width: 100, height: 100 },
       outer: { width: 1000, height: 1000 },
-    }
-    const viewbox = vi.fn((box?: unknown) => (box ? undefined : smallDiagramInLargeCard))
-    mockGetActiveViewer.mockReturnValue({ get: () => ({ resized: vi.fn(), viewbox }) })
+    })
     mockFetchSuccess()
-    mount(DmnModeler, { props: { dmnFilePath: 'test.dmn' } })
+    mountModeler()
     await settle()
 
-    expect(viewbox).toHaveBeenLastCalledWith({ x: -450, y: -450, width: 1000, height: 1000 })
+    expect(viewerCanvas.viewbox).toHaveBeenLastCalledWith({ x: -450, y: -450, width: 1000, height: 1000 })
   })
 
-  it('shows error on fetch failure', async () => {
+  it('sizes its box with the width and height props', () => {
+    mockFetchSuccess()
+    const wrapper = mountModeler({ dmnFilePath: 'test.dmn', width: '640px', height: '320px' })
+
+    expect((wrapper.element as HTMLElement).style.width).toBe('640px')
+    expect((wrapper.element as HTMLElement).style.height).toBe('320px')
+  })
+
+  it('shows an error on fetch failure', async () => {
     mockFetchFailure()
-    const wrapper = mount(DmnModeler, { props: { dmnFilePath: 'missing.dmn' } })
+    const wrapper = mountModeler()
     await settle()
 
     expect(wrapper.text()).toContain('Failed to load DMN')
+    expect(wrapper.find('button[title="Open modeler"]').exists()).toBe(false)
   })
 
-  it('imports a blank diagram when no dmnFilePath is given', async () => {
-    const fetchSpy = vi.fn()
-    vi.stubGlobal('fetch', fetchSpy)
-    mount(DmnModeler, { props: {} })
+  it('previews a blank diagram when no dmnFilePath is given', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    mountModeler({})
     await settle()
 
-    expect(fetchSpy).not.toHaveBeenCalled()
-    expect(mockViewerImportXML).toHaveBeenCalledWith(expect.stringContaining('New Decision Model'))
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(viewer.importXML).toHaveBeenCalledWith(expect.stringContaining('New Decision Model'))
   })
 
-  it('opens the fullscreen modeler when the Edit button is clicked', async () => {
+  it('opens the fullscreen modeler with the loaded XML when Edit is clicked', async () => {
     mockFetchSuccess()
-    const wrapper = mount(DmnModeler, { props: { dmnFilePath: 'test.dmn' } })
+    const wrapper = mountModeler()
     await settle()
 
-    const editButton = wrapper.findAll('button').find(b => b.text().includes('Edit'))
-    expect(editButton).toBeTruthy()
-    await editButton!.trigger('click')
-    await settle()
+    await openModeler(wrapper)
 
-    expect(MockDmnModeler).toHaveBeenCalled()
-    expect(mockModelerImportXML).toHaveBeenCalled()
+    const canvas = document.body.querySelector('.diagram-modeler-canvas')
+    expect(canvas).not.toBeNull()
+    expect(modelerOptions()).toEqual({ container: canvas })
+    expect(modeler.importXML).toHaveBeenCalledWith(ORIGINAL_XML)
+    expect(bodyButton('Show properties panel') ?? bodyButton('Hide properties panel')).toBeUndefined()
   })
 
   it('nests the Camunda properties panel config under the drd key', async () => {
     mockFetchSuccess()
-    const wrapper = mount(DmnModeler, { props: { dmnFilePath: 'test.dmn', engine: 'camunda' } })
+    const wrapper = mountModeler({ dmnFilePath: 'test.dmn', engine: 'camunda' })
     await settle()
 
-    await wrapper.vm.openFullscreen()
-    await settle()
+    await openModeler(wrapper)
 
-    const options = MockDmnModeler.mock.calls[0][0] as any
-    expect(options.drd.additionalModules).toContain('MODULE')
-    expect(options.drd.propertiesPanel).toBeTruthy()
-    expect(options.moddleExtensions).toEqual({ camunda: {} })
+    const panel = document.body.querySelector('.diagram-modeler-properties-panel')
+    expect(panel).not.toBeNull()
+    expect(modelerOptions().drd).toEqual({ additionalModules: ['MODULE'], propertiesPanel: { parent: panel } })
+    expect(modelerOptions().moddleExtensions).toEqual({ camunda: {} })
   })
 
-  it('saves and re-renders the thumbnail when the model changed on close', async () => {
-    mockFetchSuccess('<definitions id="orig"></definitions>')
-    const wrapper = mount(DmnModeler, { props: { dmnFilePath: 'test.dmn' } })
+  it('toggles the properties panel and tells the modeler canvas about the resize', async () => {
+    mockFetchSuccess()
+    const wrapper = mountModeler({ dmnFilePath: 'test.dmn', engine: 'camunda' })
     await settle()
+    await openModeler(wrapper)
+    const panel = document.body.querySelector<HTMLElement>('.diagram-modeler-properties-panel')!
+    modelerCanvas.resized.mockClear()
 
-    await wrapper.vm.openFullscreen()
-    await settle()
+    await clickBodyButton('Hide properties panel')
 
-    const viewerCallsBeforeClose = MockDmnViewer.mock.calls.length
-    mockSaveXML.mockResolvedValue({ xml: '<definitions id="changed"></definitions>' })
+    expect(panel.style.display).toBe('none')
+    expect(modelerCanvas.resized).toHaveBeenCalledOnce()
 
-    await wrapper.vm.closeFullscreen()
-    await settle()
+    await clickBodyButton('Show properties panel')
 
-    expect(mockSaveXML).toHaveBeenCalled()
-    expect(mockModelerDestroy).toHaveBeenCalled()
-    // Thumbnail re-rendered with the changed XML.
-    expect(MockDmnViewer.mock.calls.length).toBeGreaterThan(viewerCallsBeforeClose)
-    expect(mockViewerImportXML).toHaveBeenLastCalledWith('<definitions id="changed"></definitions>')
+    expect(panel.style.display).toBe('')
   })
 
-  it('does not re-render the thumbnail when nothing changed on close', async () => {
-    mockFetchSuccess('<definitions id="orig"></definitions>')
-    const wrapper = mount(DmnModeler, { props: { dmnFilePath: 'test.dmn' } })
+  it('saves and re-renders the preview when the model changed on close', async () => {
+    mockFetchSuccess()
+    const wrapper = mountModeler()
     await settle()
+    await openModeler(wrapper)
+    modeler.saveXML.mockResolvedValue({ xml: CHANGED_XML })
 
-    await wrapper.vm.openFullscreen()
+    await clickBodyButton('Close modeler')
+
+    expect(modeler.saveXML).toHaveBeenCalledWith({ format: true })
+    expect(modeler.destroy).toHaveBeenCalledOnce()
+    expect(document.body.querySelector('.diagram-modeler-canvas')).toBeNull()
+    expect(MockDmnViewer).toHaveBeenCalledTimes(2)
+    expect(viewer.importXML).toHaveBeenLastCalledWith(CHANGED_XML)
+  })
+
+  it('opens the modeler with the edited XML the next time', async () => {
+    mockFetchSuccess()
+    const wrapper = mountModeler()
     await settle()
+    await openModeler(wrapper)
+    modeler.saveXML.mockResolvedValue({ xml: CHANGED_XML })
+    await clickBodyButton('Close modeler')
 
-    const viewerCallsBeforeClose = MockDmnViewer.mock.calls.length
-    // saveXML returns the same XML that was loaded → no change.
-    mockSaveXML.mockResolvedValue({ xml: '<definitions id="orig"></definitions>' })
+    await openModeler(wrapper)
 
-    await wrapper.vm.closeFullscreen()
+    expect(modeler.importXML).toHaveBeenLastCalledWith(CHANGED_XML)
+  })
+
+  it('does not re-render the preview when nothing changed on close', async () => {
+    mockFetchSuccess()
+    const wrapper = mountModeler()
     await settle()
+    await openModeler(wrapper)
 
-    expect(mockModelerDestroy).toHaveBeenCalled()
-    expect(MockDmnViewer.mock.calls.length).toBe(viewerCallsBeforeClose)
+    await clickBodyButton('Close modeler')
+
+    expect(modeler.destroy).toHaveBeenCalledOnce()
+    expect(MockDmnViewer).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the preview when saving the edited model fails', async () => {
+    mockFetchSuccess()
+    const wrapper = mountModeler()
+    await settle()
+    await openModeler(wrapper)
+    modeler.saveXML.mockRejectedValue(new Error('save failed'))
+
+    await clickBodyButton('Close modeler')
+
+    expect(modeler.destroy).toHaveBeenCalledOnce()
+    expect(MockDmnViewer).toHaveBeenCalledOnce()
+    expect(document.body.querySelector('.diagram-modeler-canvas')).toBeNull()
+  })
+
+  it('destroys the open modeler and the preview viewer on unmount', async () => {
+    mockFetchSuccess()
+    const wrapper = mountModeler()
+    await settle()
+    await openModeler(wrapper)
+
+    wrapper.unmount()
+
+    expect(modeler.destroy).toHaveBeenCalledOnce()
+    expect(viewer.destroy).toHaveBeenCalledOnce()
   })
 })

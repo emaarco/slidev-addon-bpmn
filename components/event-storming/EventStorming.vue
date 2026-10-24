@@ -1,15 +1,14 @@
 <template>
   <StaticDiagram
-    diagramKind="Event Storming"
+    :notation="notation"
     :filePath="props.eventStormingFilePath"
     :width="props.width"
     :height="props.height"
-    :exportSvg="exportEventStormingSvg"
   />
 </template>
 
 <script setup lang="ts">
-import { exportEventStormingSvg } from '../../plugins/event-storming/eventStormingBoard'
+import { EventStormingNotation } from '../../plugins/event-storming/EventStormingNotation'
 import StaticDiagram from '../../shared/ui/StaticDiagram.vue'
 
 const props = withDefaults(defineProps<{
@@ -20,4 +19,6 @@ const props = withDefaults(defineProps<{
   width: '100%',
   height: 'auto',
 })
+
+const notation = new EventStormingNotation()
 </script>

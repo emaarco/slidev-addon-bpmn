@@ -7,6 +7,7 @@
  *   shared/               -> (leaf; imports nothing from the layers above)
  *
  * A modeler (bpmn, dmn, ...) never imports another modeler; they only meet in shared/.
+ * utils/ folders hold stateless helpers and are leaves of their layer.
  *
  * See components/README.md for why components/ is the public surface.
  */
@@ -39,6 +40,13 @@ module.exports = {
       severity: 'error',
       from: { path: '^shared/' },
       to: { path: '^(components|plugins)/' },
+    },
+    {
+      name: 'utils-are-leaves',
+      comment: 'utils/ holds stateless helpers; they may only import other utils.',
+      severity: 'error',
+      from: { path: '/utils/' },
+      to: { path: '^(components|plugins|shared)/', pathNot: '/utils/' },
     },
   ],
   options: {

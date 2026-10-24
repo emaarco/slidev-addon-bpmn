@@ -1,12 +1,21 @@
 <template>
   <div class="diagram-modeler" :style="{ width: props.width, height: props.height }">
-    <StaticDiagram
-      :diagramKind="props.diagramKind"
+    <LiveDiagram
+      v-if="livePreviewNotation"
+      :notation="livePreviewNotation"
       :filePath="props.filePath"
       :source="previewSource"
       width="100%"
       height="100%"
-      :exportSvg="props.exportSvg"
+      @rendered="rememberRenderedSource"
+    />
+    <StaticDiagram
+      v-else
+      :notation="staticPreviewNotation!"
+      :filePath="props.filePath"
+      :source="previewSource"
+      width="100%"
+      height="100%"
       @rendered="rememberRenderedSource"
     />
 
@@ -25,49 +34,76 @@
       </template>
     </ToolbarButton>
 
-    <Teleport to="body">
-      <div v-if="isFullscreen" class="diagram-modeler-overlay">
-        <div ref="modelerContainerRef" class="diagram-modeler-canvas"></div>
+    <FullscreenOverlay :open="isFullscreen">
+      <div ref="modelerCanvasRef" class="diagram-modeler-canvas"></div>
 
-        <div class="diagram-modeler-toolbar">
-          <ToolbarButton title="Close modeler" label="Close" @click="closeFullscreen">
-            <template #icon>
-              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </template>
-          </ToolbarButton>
-        </div>
-      </div>
-    </Teleport>
+      <template #toolbar>
+        <ToolbarButton title="Close modeler" label="Close" @click="closeFullscreen">
+          <template #icon>
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </template>
+        </ToolbarButton>
+        <ToolbarButton
+          v-if="props.notation.hasPropertiesPanel"
+          :title="isPanelOpen ? 'Hide properties panel' : 'Show properties panel'"
+          :label="isPanelOpen ? 'Hide panel' : 'Show panel'"
+          @click="togglePanel"
+        >
+          <template #icon>
+            <svg v-if="isPanelOpen" xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </template>
+        </ToolbarButton>
+      </template>
+
+      <template #aside>
+        <div
+          v-if="props.notation.hasPropertiesPanel"
+          v-show="isPanelOpen"
+          ref="propertiesPanelRef"
+          class="diagram-modeler-properties-panel"
+        ></div>
+      </template>
+    </FullscreenOverlay>
   </div>
 </template>
 
 <script setup lang="ts">
-import { nextTick, onUnmounted, ref } from 'vue'
-import { attachStylesheet } from '../lib/attachStylesheet'
-import type { ExportSvg, ModelerSession, OpenModeler } from '../lib/diagramAdapter'
+import { computed, nextTick, onUnmounted, ref } from 'vue'
+import type { LiveNotation, ModelerNotation, ModelerSession, PreviewNotation, StaticNotation } from '../lib/notation'
+import { PageStylesheet } from '../lib/PageStylesheet'
+import FullscreenOverlay from './FullscreenOverlay.vue'
+import LiveDiagram from './LiveDiagram.vue'
 import StaticDiagram from './StaticDiagram.vue'
 import ToolbarButton from './ToolbarButton.vue'
 
 const props = defineProps<{
-  diagramKind: string
+  notation: ModelerNotation & PreviewNotation
   filePath?: string
-  blankSource: string
   width: string
   height: string
-  exportSvg: ExportSvg
-  openModeler: OpenModeler
-  modelerStyles: string
+  modelerStyles?: string
 }>()
 
-const previewSource = ref<string | undefined>(props.filePath ? undefined : props.blankSource)
+const livePreviewNotation = computed(() => 'createViewer' in props.notation ? props.notation as LiveNotation : null)
+const staticPreviewNotation = computed(() => 'exportSvg' in props.notation ? props.notation as StaticNotation : null)
+
+const previewSource = ref<string | undefined>(props.filePath ? undefined : props.notation.blankSource)
 const renderedSource = ref<string | null>(null)
 const isFullscreen = ref(false)
-const modelerContainerRef = ref<HTMLDivElement | null>(null)
+const isPanelOpen = ref(true)
+const modelerCanvasRef = ref<HTMLDivElement | null>(null)
+const propertiesPanelRef = ref<HTMLDivElement | null>(null)
+const modelerStylesheet = props.modelerStyles ? new PageStylesheet(props.modelerStyles) : null
 let modelerSession: ModelerSession | null = null
-let detachModelerStyles: (() => void) | null = null
+let latestOpenRequest = 0
 
 function rememberRenderedSource(source: string): void {
   renderedSource.value = source
@@ -76,49 +112,67 @@ function rememberRenderedSource(source: string): void {
 async function openFullscreen(): Promise<void> {
   if (renderedSource.value === null) return
 
+  const openRequest = ++latestOpenRequest
   isFullscreen.value = true
-  detachModelerStyles = attachStylesheet(props.modelerStyles)
-  document.addEventListener('keydown', keepKeyStrokesFromSlideNavigation)
+  modelerStylesheet?.attach()
   await nextTick()
-  modelerSession = await props.openModeler(renderedSource.value, modelerContainerRef.value!)
+  const session = await openModeler(renderedSource.value)
+
+  const isStillWanted = isFullscreen.value && openRequest === latestOpenRequest
+  if (!isStillWanted) session?.destroy()
+  else if (session) modelerSession = session
+  else leaveFullscreen()
 }
 
-function closeFullscreen(): void {
-  const editedSource = exportEditedSource()
-  discardModelerSession()
-  isFullscreen.value = false
+async function openModeler(source: string): Promise<ModelerSession | null> {
+  try {
+    return await props.notation.openModeler(source, {
+      canvas: modelerCanvasRef.value!,
+      propertiesPanel: propertiesPanelRef.value ?? undefined,
+    })
+  } catch (err) {
+    console.error(`Failed to open the ${props.notation.kind} modeler:`, err)
+    return null
+  }
+}
+
+async function closeFullscreen(): Promise<void> {
+  const editedSource = await exportEditedSource()
+  leaveFullscreen()
 
   if (editedSource !== null && editedSource !== renderedSource.value) {
     previewSource.value = editedSource
   }
 }
 
+async function togglePanel(): Promise<void> {
+  isPanelOpen.value = !isPanelOpen.value
+  await nextTick()
+  modelerSession?.resized?.()
+}
+
+function leaveFullscreen(): void {
+  discardModelerSession()
+  isFullscreen.value = false
+  isPanelOpen.value = true
+}
+
 function discardModelerSession(): void {
   modelerSession?.destroy()
   modelerSession = null
-  detachModelerStyles?.()
-  detachModelerStyles = null
-  document.removeEventListener('keydown', keepKeyStrokesFromSlideNavigation)
+  modelerStylesheet?.detach()
 }
 
-// The modelers handle shortcuts on document, Slidev navigates on window:
-// stopping here lets the modeler see a key stroke and keeps the slide in place.
-function keepKeyStrokesFromSlideNavigation(event: KeyboardEvent): void {
-  event.stopPropagation()
-}
-
-function exportEditedSource(): string | null {
+async function exportEditedSource(): Promise<string | null> {
   if (!modelerSession) return null
 
   try {
-    return modelerSession.exportSource()
+    return await modelerSession.exportSource()
   } catch (err) {
-    console.error(`Failed to save ${props.diagramKind} changes:`, err)
+    console.error(`Failed to save ${props.notation.kind} changes:`, err)
     return null
   }
 }
-
-defineExpose({ openFullscreen, closeFullscreen })
 
 onUnmounted(discardModelerSession)
 </script>
@@ -128,25 +182,16 @@ onUnmounted(discardModelerSession)
   position: relative;
 }
 
-.diagram-modeler-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 9999;
-  background: white;
-}
-
 .diagram-modeler-canvas {
   width: 100%;
   height: 100%;
 }
 
-.diagram-modeler-toolbar {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 10000;
+.diagram-modeler-properties-panel {
+  width: 350px;
+  height: 100%;
+  overflow-y: auto;
+  border-left: 1px solid #ccc;
+  background: #fafafa;
 }
 </style>

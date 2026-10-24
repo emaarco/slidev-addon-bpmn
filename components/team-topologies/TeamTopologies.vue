@@ -1,15 +1,14 @@
 <template>
   <StaticDiagram
-    diagramKind="Team Topologies"
+    :notation="notation"
     :filePath="props.teamTopologiesFilePath"
     :width="props.width"
     :height="props.height"
-    :exportSvg="exportTeamTopologiesSvg"
   />
 </template>
 
 <script setup lang="ts">
-import { exportTeamTopologiesSvg } from '../../plugins/team-topologies/teamTopologiesDiagram'
+import { TeamTopologiesNotation } from '../../plugins/team-topologies/TeamTopologiesNotation'
 import StaticDiagram from '../../shared/ui/StaticDiagram.vue'
 
 const props = withDefaults(defineProps<{
@@ -20,4 +19,6 @@ const props = withDefaults(defineProps<{
   width: '100%',
   height: 'auto',
 })
+
+const notation = new TeamTopologiesNotation()
 </script>

@@ -1,23 +1,16 @@
 <template>
   <DiagramModeler
-    diagramKind="Event Storming"
+    :notation="notation"
     :filePath="props.eventStormingFilePath"
-    :blankSource="blankEventStormingBoard"
     :width="props.width"
     :height="props.height"
-    :exportSvg="exportEventStormingSvg"
-    :openModeler="openEventStormingModeler"
     :modelerStyles="modelerStyles"
   />
 </template>
 
 <script setup lang="ts">
 import modelerStyles from '@miragon/event-storming-renderer/assets/event-storming.css?inline'
-import {
-  blankEventStormingBoard,
-  exportEventStormingSvg,
-  openEventStormingModeler,
-} from '../../plugins/event-storming/eventStormingBoard'
+import { EventStormingNotation } from '../../plugins/event-storming/EventStormingNotation'
 import DiagramModeler from '../../shared/ui/DiagramModeler.vue'
 
 const props = withDefaults(defineProps<{
@@ -28,4 +21,6 @@ const props = withDefaults(defineProps<{
   width: '100%',
   height: '500px',
 })
+
+const notation = new EventStormingNotation()
 </script>

@@ -5,7 +5,7 @@ import {
 } from 'bpmn-js-properties-panel'
 import ZeebeBehaviorsModule from 'camunda-bpmn-js-behaviors/lib/camunda-cloud'
 import zeebeModdle from 'zeebe-bpmn-moddle/resources/zeebe.json'
-import type { EngineConfig } from './types'
+import type { EngineConfig } from '../../../shared/lib/engineConfig'
 
 export const zeebeEngine: EngineConfig = {
   additionalModules: [

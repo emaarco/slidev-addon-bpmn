@@ -1,36 +1,11 @@
-const OFFSCREEN_WIDTH = '1920px'
-const OFFSCREEN_HEIGHT = '1080px'
 const VIEWBOX_PADDING_RATIO = 0.02
 
-let renderedSvgCount = 0
-
-export async function renderStaticSvg(
-  exportSvg: (container: HTMLElement) => Promise<string>,
-): Promise<string> {
-  const container = createOffscreenContainer()
-  try {
-    return toEmbeddableSvg(await exportSvg(container))
-  } finally {
-    container.remove()
-  }
-}
-
-function createOffscreenContainer(): HTMLElement {
-  const container = document.createElement('div')
-  container.style.width = OFFSCREEN_WIDTH
-  container.style.height = OFFSCREEN_HEIGHT
-  container.style.position = 'absolute'
-  container.style.left = '-9999px'
-  document.body.appendChild(container)
-  return container
-}
-
-function toEmbeddableSvg(exportedSvg: string): string {
+export function toEmbeddableSvg(exportedSvg: string, idSuffix: string): string {
   const svgDocument = new DOMParser().parseFromString(exportedSvg, 'image/svg+xml')
   const svgElement = svgDocument.documentElement
 
   svgDocument.querySelectorAll('script, foreignObject').forEach(el => el.remove())
-  makeIdsUniqueInPage(svgElement)
+  makeIdsUnique(svgElement, idSuffix)
   padViewBoxAndPinIntrinsicSize(svgElement)
   svgElement.style.removeProperty('width')
   svgElement.style.removeProperty('height')
@@ -57,8 +32,7 @@ function padViewBoxAndPinIntrinsicSize(svgElement: HTMLElement): void {
 
 // Renderers reuse fixed ids for filters and markers. A second diagram on the page
 // would resolve url(#id) to the first one, which stops rendering once its slide is hidden.
-function makeIdsUniqueInPage(svgElement: HTMLElement): void {
-  const suffix = `-static-${++renderedSvgCount}`
+function makeIdsUnique(svgElement: HTMLElement, suffix: string): void {
   const renamedIds = new Map<string, string>()
   svgElement.querySelectorAll('[id]').forEach((el) => {
     renamedIds.set(el.id, el.id + suffix)

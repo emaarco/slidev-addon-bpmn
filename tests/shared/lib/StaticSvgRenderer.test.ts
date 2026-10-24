@@ -1,10 +1,27 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-import { renderStaticSvg } from '../../../shared/lib/renderStaticSvg'
+import type { StaticNotation } from '../../../shared/lib/notation'
+import { StaticSvgRenderer } from '../../../shared/lib/StaticSvgRenderer'
 
 const SAMPLE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="50" height="50"/></svg>'
 
-describe('renderStaticSvg', () => {
+function notationExporting(exportSvg: (container: HTMLElement) => Promise<string>): StaticNotation {
+  return { kind: 'Test', exportSvg: (_source, container) => exportSvg(container) }
+}
+
+function renderStaticSvg(exportSvg: (container: HTMLElement) => Promise<string>): Promise<string> {
+  return new StaticSvgRenderer().render(notationExporting(exportSvg), 'diagram source')
+}
+
+describe('StaticSvgRenderer', () => {
+  it('hands the notation the source to export', async () => {
+    const exportSvg = vi.fn().mockResolvedValue(SAMPLE_SVG)
+
+    await new StaticSvgRenderer().render({ kind: 'Test', exportSvg }, 'title Order Checkout')
+
+    expect(exportSvg).toHaveBeenCalledWith('title Order Checkout', expect.any(HTMLElement))
+  })
+
   it('hands the exporter an off-screen container that is attached to the document', async () => {
     let containerDuringExport: HTMLElement | undefined
 
@@ -89,8 +106,10 @@ describe('renderStaticSvg', () => {
       + '<use href="#arrow"/>'
       + '</svg>'
 
-    const first = new DOMParser().parseFromString(await renderStaticSvg(async () => svgWithSharedIds), 'image/svg+xml')
-    const second = new DOMParser().parseFromString(await renderStaticSvg(async () => svgWithSharedIds), 'image/svg+xml')
+    const notation = notationExporting(async () => svgWithSharedIds)
+    const parse = (svg: string) => new DOMParser().parseFromString(svg, 'image/svg+xml')
+    const first = parse(await new StaticSvgRenderer().render(notation, 'first'))
+    const second = parse(await new StaticSvgRenderer().render(notation, 'second'))
 
     const firstFilterId = first.querySelector('filter')!.id
     const firstMarkerId = first.querySelector('marker')!.id

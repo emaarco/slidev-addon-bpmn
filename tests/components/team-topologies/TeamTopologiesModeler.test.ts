@@ -13,6 +13,7 @@ const { mockViewerImport, mockSaveSVG, mockViewerDestroy, MockViewer, mockModele
 }))
 
 vi.mock('@miragon/team-topologies-renderer', () => ({ Viewer: MockViewer, Modeler: MockModeler }))
+vi.mock('@slidev/client', () => ({ onSlideEnter: vi.fn() }))
 
 import { emptyDocument, parseDocument, serializeDocument } from '@miragon/team-topologies-schema-model'
 import TeamTopologiesModeler from '../../../components/team-topologies/TeamTopologiesModeler.vue'
@@ -102,6 +103,19 @@ describe('TeamTopologiesModeler.vue', () => {
 
     expect(MockModeler).toHaveBeenCalledOnce()
     expect(mockModelerImport).toHaveBeenCalledWith(expect.objectContaining({ title: 'Online shop' }))
+  })
+
+  it('mounts the modeler into the fullscreen overlay', async () => {
+    mockFetchSuccess()
+    mountModeler()
+    await flushPromises()
+
+    findButton('Edit')!.click()
+    await flushPromises()
+
+    const [{ container }] = MockModeler.mock.calls[0]
+    expect(container.closest('.fullscreen-overlay')).not.toBeNull()
+    expect(document.body.contains(container)).toBe(true)
   })
 
   it('shows the edited diagram in the preview after closing and destroys the modeler', async () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 
+import type { StaticNotation } from '../../../shared/lib/notation'
 import StaticDiagram from '../../../shared/ui/StaticDiagram.vue'
 
 const SAMPLE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="50" height="50"/></svg>'
@@ -19,14 +20,17 @@ function mockFetchFailure() {
   }))
 }
 
+function eventStormingNotation(exportSvg: ReturnType<typeof vi.fn>): StaticNotation {
+  return { kind: 'Event Storming', exportSvg }
+}
+
 function mountStaticDiagram(exportSvg = vi.fn().mockResolvedValue(SAMPLE_SVG)) {
   const wrapper = mount(StaticDiagram, {
     props: {
       filePath: 'board.storm',
-      diagramKind: 'Event Storming',
       width: '80%',
       height: '300px',
-      exportSvg,
+      notation: eventStormingNotation(exportSvg),
     },
   })
   return { wrapper, exportSvg }
@@ -96,7 +100,7 @@ describe('StaticDiagram.vue', () => {
     const exportSvg = vi.fn().mockResolvedValue(SAMPLE_SVG)
 
     const wrapper = mount(StaticDiagram, {
-      props: { source: 'title New Board', diagramKind: 'Event Storming', width: '100%', height: 'auto', exportSvg },
+      props: { source: 'title New Board', width: '100%', height: 'auto', notation: eventStormingNotation(exportSvg) },
     })
     await flushPromises()
 
@@ -108,7 +112,7 @@ describe('StaticDiagram.vue', () => {
   it('renders again when the source changes', async () => {
     const exportSvg = vi.fn().mockResolvedValue(SAMPLE_SVG)
     const wrapper = mount(StaticDiagram, {
-      props: { source: 'title Before', diagramKind: 'Event Storming', width: '100%', height: 'auto', exportSvg },
+      props: { source: 'title Before', width: '100%', height: 'auto', notation: eventStormingNotation(exportSvg) },
     })
     await flushPromises()
 

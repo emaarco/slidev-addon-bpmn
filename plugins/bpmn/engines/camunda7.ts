@@ -5,7 +5,7 @@ import {
 } from 'bpmn-js-properties-panel'
 import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json'
 import CamundaTransactionBoundariesModule from 'camunda-transaction-boundaries'
-import type { EngineConfig } from './types'
+import type { EngineConfig } from '../../../shared/lib/engineConfig'
 
 const raw = CamundaTransactionBoundariesModule as any
 const CamundaTransactionBoundaries = raw?.__init__ ? raw : (raw?.default ?? raw)

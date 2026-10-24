@@ -9,8 +9,8 @@
         <p v-if="loading">Loading DMN decision table...</p>
         <p v-else-if="error" class="text-red-500">{{ error }}</p>
 
-        <form v-if="model" class="sim-inputs" @submit.prevent="runSimulation">
-          <div v-for="(input, i) in model.inputs" :key="input.id" class="sim-field">
+        <form v-if="simulation" class="sim-inputs" @submit.prevent="runSimulation">
+          <div v-for="(input, i) in simulation.inputs" :key="input.id" class="sim-field">
             <label>{{ input.label }}</label>
             <select v-if="input.options.length" v-model="values[i]">
               <option value="">–</option>
@@ -90,23 +90,21 @@
 </template>
 
 <script setup lang="ts">
-import { type CSSProperties, computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import DmnViewer from 'dmn-js/lib/Viewer'
+import { type CSSProperties, computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import 'dmn-js/dist/assets/diagram-js.css'
 import 'dmn-js/dist/assets/dmn-js-shared.css'
 import 'dmn-js/dist/assets/dmn-js-decision-table.css'
 import 'dmn-js/dist/assets/dmn-js-decision-table-controls.css'
 import 'dmn-js/dist/assets/dmn-font/css/dmn-embedded.css'
+import '../../plugins/dmn/decisionTable.css'
 import { onSlideEnter } from '@slidev/client'
-import { useDiagramFile } from '../../shared/lib/useDiagramFile'
-import {
-  evaluateDecision,
-  isNumericType,
-  parseDecisionModelFromXml,
-  type DecisionModel,
-  type EvaluationResult,
-  type RawValue,
-} from '@emaarco/dmn-js-simulation'
+import { type EvaluationResult, type RawValue, isNumericType } from '@emaarco/dmn-js-simulation'
+import { DecisionSimulation } from '../../plugins/dmn/DecisionSimulation'
+import { DecisionTableNotation } from '../../plugins/dmn/DecisionTableNotation'
+import { RuleHighlighter } from '../../plugins/dmn/RuleHighlighter'
+import { formatValue } from '../../plugins/dmn/utils/formatValue'
+import { DiagramFileLoader } from '../../shared/lib/DiagramFileLoader'
+import { EmbeddedViewer } from '../../shared/lib/EmbeddedViewer'
 
 const props = withDefaults(defineProps<{
   dmnFilePath: string
@@ -126,14 +124,17 @@ const props = withDefaults(defineProps<{
   showDrdButton: false,
 })
 
-const { loading, error, fetchDiagramFile } = useDiagramFile('DMN')
+const fileLoader = new DiagramFileLoader('DMN')
+const { loading, error } = fileLoader
+const embeddedViewer = new EmbeddedViewer(new DecisionTableNotation(props.decisionId))
 const containerRef = ref<HTMLDivElement | null>(null)
-const model = ref<DecisionModel | null>(null)
+const simulation = shallowRef<DecisionSimulation | null>(null)
 const values = ref<RawValue[]>([])
 const result = ref<EvaluationResult | null>(null)
-const isRendered = ref(false)
-const isUnmounted = ref(false)
 const isFullscreen = ref(false)
+let ruleHighlighter: RuleHighlighter
+
+const isComplete = computed(() => !!simulation.value?.isComplete(values.value))
 
 // In fullscreen the table flexes to fill the viewport; in the slide it keeps the
 // author-defined fixed height. Same dmn-js node either way — only the box changes.
@@ -151,159 +152,60 @@ const wrapperStyle = computed<CSSProperties>(() => {
   }
 })
 
-function openFullscreen() {
-  isFullscreen.value = true
-}
-
-function closeFullscreen() {
-  isFullscreen.value = false
-}
-
-function toggleFullscreen() {
+function toggleFullscreen(): void {
   isFullscreen.value = !isFullscreen.value
 }
 
-// Escape exits fullscreen, matching the modeler's overlay affordance.
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && isFullscreen.value) closeFullscreen()
+function closeFullscreenOnEscape(event: KeyboardEvent): void {
+  if (event.key === 'Escape') isFullscreen.value = false
 }
 
-defineExpose({ openFullscreen, closeFullscreen, toggleFullscreen })
-
-// Only allow simulating once every input has a value — an incomplete input set
-// can never match a concrete rule, so the button stays disabled until then.
-const isComplete = computed(() =>
-  !!model.value
-  && model.value.inputs.length > 0
-  && values.value.length === model.value.inputs.length
-  && values.value.every(v => v !== '' && v !== null && v !== undefined),
-)
-
-onBeforeUnmount(() => {
-  isUnmounted.value = true
-  window.removeEventListener('keydown', onKeydown)
-})
-
-// Any input change invalidates the previous run — clear the result + highlight
-// so the table never shows a stale match next to fresh inputs.
+// Any input change invalidates the previous run, so the table never shows a
+// stale match next to fresh inputs.
 watch(values, () => {
-  if (result.value) {
-    result.value = null
-    applyHighlight([], [])
-  }
+  if (result.value) clearResult()
 }, { deep: true })
 
-async function waitForContainer(): Promise<void> {
-  return new Promise((resolve) => {
-    const checkDimensions = () => {
-      if (isUnmounted.value) {
-        resolve()
-      } else if (containerRef.value && containerRef.value.clientWidth > 0 && containerRef.value.clientHeight > 0) {
-        resolve()
-      } else {
-        requestAnimationFrame(checkDimensions)
-      }
+async function render(): Promise<void> {
+  await fileLoader.withLoading(async () => {
+    const dmnXml = await fileLoader.fetchFile(props.dmnFilePath)
+    if (!simulation.value) {
+      simulation.value = new DecisionSimulation(dmnXml, props.decisionId)
+      values.value = simulation.value.emptyValues()
     }
-    checkDimensions()
+    await embeddedViewer.show(containerRef.value!, dmnXml)
   })
+  if (error.value) simulation.value = null
 }
 
-// Guarded against the duplicate onMounted/onSlideEnter calls Slidev makes
-// (mirrors DmnTable).
-async function setup() {
-  if (isRendered.value) return
-  isRendered.value = true
-  loading.value = true
-  error.value = null
-
-  try {
-    await waitForContainer()
-    if (isUnmounted.value) return
-
-    const dmnXml = await fetchDiagramFile(props.dmnFilePath)
-    model.value = parseDecisionModelFromXml(dmnXml, props.decisionId)
-    values.value = model.value.inputs.map(() => '')
-
-    // Let the container mount before dmn-js measures it.
-    await nextTick()
-
-    const viewer = new DmnViewer({ container: containerRef.value! })
-    await viewer.importXML(dmnXml)
-
-    const views = viewer.getViews()
-    const tableView = props.decisionId
-      ? views.find((v: any) => v.type === 'decisionTable' && v.element?.id === props.decisionId)
-      : views.find((v: any) => v.type === 'decisionTable')
-    if (!tableView) {
-      throw new Error('No decision table view found in DMN file')
-    }
-    await viewer.open(tableView)
-  } catch (err) {
-    isRendered.value = false
-    model.value = null
-    error.value = `Failed to load DMN: ${err instanceof Error ? err.message : String(err)}`
-    console.error('DMN loading error:', err)
-  } finally {
-    loading.value = false
-  }
-}
-
-function runSimulation() {
-  if (!model.value || !isComplete.value) return
-  const evaluation = evaluateDecision(model.value, values.value)
+function runSimulation(): void {
+  if (!simulation.value || !isComplete.value) return
+  const evaluation = simulation.value.evaluate(values.value)
   result.value = evaluation
-  applyHighlight(evaluation.reportedRuleIndices, evaluation.matchedRuleIndices)
+  ruleHighlighter.highlight(evaluation.reportedRuleIndices, evaluation.matchedRuleIndices)
 }
 
-function reset() {
-  if (model.value) values.value = model.value.inputs.map(() => '')
+function reset(): void {
+  if (simulation.value) values.value = simulation.value.emptyValues()
+  clearResult()
+}
+
+function clearResult(): void {
   result.value = null
-  applyHighlight([], [])
+  ruleHighlighter.clear()
 }
 
-/**
- * Highlight rules directly in the dmn-js DOM. Rows render in document order, so
- * rule index N maps to the Nth `<tbody>` row. Rules the hit policy actually
- * reports get the strong `sim-match` style; rules that merely matched but were
- * dropped by the policy (e.g. under FIRST/PRIORITY) get the subtle
- * `sim-candidate` style, making the policy's effect visible.
- */
-function applyHighlight(reported: number[], matched: number[]) {
-  const rows = containerRef.value?.querySelectorAll('.dmn-decision-table-container tbody tr') ?? []
-  rows.forEach((row, i) => {
-    row.classList.toggle('sim-match', reported.includes(i))
-    row.classList.toggle('sim-candidate', matched.includes(i) && !reported.includes(i))
-  })
-
-  // The table scrolls internally when it is taller than the slide allows, so a
-  // matched rule below the fold would stay hidden — scroll the first relevant
-  // row into the visible band of the table's own scroll container (never the page).
-  const focusIndex = reported[0] ?? matched[0]
-  if (focusIndex === undefined) return
-  const firstRow = rows[focusIndex] as HTMLElement | undefined
-  const scroller = containerRef.value?.querySelector('.tjs-table-container') as HTMLElement | null
-  if (!firstRow || !scroller) return
-  const rowRect = firstRow.getBoundingClientRect()
-  const scrollRect = scroller.getBoundingClientRect()
-  if (rowRect.top < scrollRect.top || rowRect.bottom > scrollRect.bottom) {
-    scroller.scrollTop += (rowRect.top - scrollRect.top) - (scrollRect.height - rowRect.height) / 2
-  }
-}
-
-function formatValue(value: unknown): string {
-  if (value === null || value === undefined) return '–'
-  if (typeof value === 'string') return value
-  return JSON.stringify(value)
-}
-
-onMounted(async () => {
-  window.addEventListener('keydown', onKeydown)
-  await nextTick()
-  await setup()
+onMounted(() => {
+  ruleHighlighter = new RuleHighlighter(containerRef.value!)
+  window.addEventListener('keydown', closeFullscreenOnEscape)
+  render()
 })
 
-onSlideEnter(async () => {
-  await setup()
+onSlideEnter(render)
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', closeFullscreenOnEscape)
+  embeddedViewer.destroy()
 })
 </script>
 
@@ -459,18 +361,12 @@ onSlideEnter(async () => {
   box-shadow: inset 0 0 0 9999px rgba(148, 163, 184, 0.14);
 }
 
-/* --- Table styling (mirrors DmnTable so DmnSimulate stands alone) --- */
-.dmn-simulate .dmn-table-wrapper .dmn-decision-table-container {
-  font-size: var(--dmn-table-font-size, 12px) !important;
-}
-
+/* --- Table styling: overrides of plugins/dmn/decisionTable.css --- */
 .dmn-simulate .dmn-table-wrapper .dmn-decision-table-container .decision-table-name {
   font-size: calc(var(--dmn-table-font-size, 12px) * 1.25) !important;
 }
 
-/* Scale the header text with the variable too (mirrors DmnTable). dmn-js pins
-   these to fixed px, so without this they would stay huge once the body shrinks.
-   The `margin` on the labels is fixed px as well, so express it in `em` to keep
+/* dmn-js pins the header labels' margin to fixed px; express it in `em` to keep
    the header row height proportional to the font. */
 .dmn-simulate .dmn-table-wrapper .dmn-decision-table-container thead .input-label,
 .dmn-simulate .dmn-table-wrapper .dmn-decision-table-container thead .input-expression,
@@ -478,49 +374,6 @@ onSlideEnter(async () => {
 .dmn-simulate .dmn-table-wrapper .dmn-decision-table-container thead .output-name {
   font-size: calc(var(--dmn-table-font-size, 12px) * 1) !important;
   margin: 1em 0.4em !important;
-}
-
-.dmn-simulate .dmn-table-wrapper .dmn-decision-table-container thead .clause,
-.dmn-simulate .dmn-table-wrapper .dmn-decision-table-container thead .input-variable,
-.dmn-simulate .dmn-table-wrapper .dmn-decision-table-container thead .output-variable {
-  font-size: calc(var(--dmn-table-font-size, 12px) * 0.85) !important;
-}
-
-/* dmn-js pins the table body to `.tjs-container { font-size: 21px }`, so the rule
-   cells inherit that fixed size and ignore the `font-size` set on the container
-   above. Re-point it at the variable so the cell content — and therefore the row
-   height — scales with `fontSize`. */
-.dmn-simulate .dmn-table-wrapper .tjs-container {
-  width: 100% !important;
-  font-size: var(--dmn-table-font-size, 12px) !important;
-}
-
-.dmn-simulate .dmn-table-wrapper .tjs-table-container {
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-}
-
-.dmn-simulate .dmn-table-wrapper .tjs-table {
-  width: 100% !important;
-  table-layout: fixed !important;
-}
-
-.dmn-simulate .dmn-table-wrapper th:not(:first-child),
-.dmn-simulate .dmn-table-wrapper td:not(:first-child) {
-  padding: 2px !important;
-}
-
-.dmn-simulate .dmn-table-wrapper th.index-column {
-  width: 36px !important;
-}
-
-.dmn-simulate .dmn-table-wrapper.hide-annotations th.annotation,
-.dmn-simulate .dmn-table-wrapper.hide-annotations td.annotation {
-  display: none !important;
-}
-
-.dmn-simulate .dmn-table-wrapper.hide-drd-button .view-drd {
-  display: none !important;
 }
 
 /* --- Pin the bpmn.io watermark to a consistent spot ---
