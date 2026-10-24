@@ -8,8 +8,8 @@
 </template>
 
 <script setup lang="ts">
-import { EventStormingNotation } from '../../plugins/event-storming/EventStormingNotation'
-import StaticDiagram from '../../shared/ui/StaticDiagram.vue'
+import { EventStormingNotation } from '../../src/event-storming/EventStormingNotation'
+import StaticDiagram from '../../src/shared/ui/StaticDiagram.vue'
 
 const props = withDefaults(defineProps<{
   eventStormingFilePath: string

@@ -10,8 +10,8 @@
 
 <script setup lang="ts">
 import modelerStyles from '@miragon/wardley-renderer/assets/wardley.css?inline'
-import { WardleyMapNotation } from '../../plugins/wardley-maps/WardleyMapNotation'
-import DiagramModeler from '../../shared/ui/DiagramModeler.vue'
+import { WardleyMapNotation } from '../../src/wardley-maps/WardleyMapNotation'
+import DiagramModeler from '../../src/shared/ui/DiagramModeler.vue'
 
 const props = withDefaults(defineProps<{
   wardleyMapFilePath?: string

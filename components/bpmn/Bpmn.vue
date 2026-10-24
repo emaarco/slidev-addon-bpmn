@@ -9,8 +9,8 @@
 
 <script setup lang="ts">
 import 'bpmn-js/dist/assets/bpmn-js.css'
-import { BpmnDiagramNotation } from '../../plugins/bpmn/BpmnDiagramNotation'
-import StaticDiagram from '../../shared/ui/StaticDiagram.vue'
+import { BpmnDiagramNotation } from '../../src/bpmn/BpmnDiagramNotation'
+import StaticDiagram from '../../src/shared/ui/StaticDiagram.vue'
 
 const props = withDefaults(defineProps<{
   bpmnFilePath: string

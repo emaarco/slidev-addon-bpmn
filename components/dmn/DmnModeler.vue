@@ -16,9 +16,9 @@ import 'dmn-js/dist/assets/dmn-js-decision-table-controls.css'
 import 'dmn-js/dist/assets/dmn-js-literal-expression.css'
 import 'dmn-js/dist/assets/dmn-font/css/dmn-embedded.css'
 import '@bpmn-io/properties-panel/dist/assets/properties-panel.css'
-import { DmnModelerNotation } from '../../plugins/dmn/DmnModelerNotation'
-import type { Engine } from '../../plugins/dmn/engines/types'
-import DiagramModeler from '../../shared/ui/DiagramModeler.vue'
+import { DmnModelerNotation } from '../../src/dmn/DmnModelerNotation'
+import type { Engine } from '../../src/dmn/engines/types'
+import DiagramModeler from '../../src/shared/ui/DiagramModeler.vue'
 
 const props = withDefaults(defineProps<{
   dmnFilePath?: string

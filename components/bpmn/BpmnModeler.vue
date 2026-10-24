@@ -13,10 +13,10 @@ import 'bpmn-js/dist/assets/diagram-js.css'
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css'
 import '@bpmn-io/properties-panel/dist/assets/properties-panel.css'
 import 'bpmn-js-token-simulation/assets/css/bpmn-js-token-simulation.css'
-import { BpmnModelerNotation } from '../../plugins/bpmn/BpmnModelerNotation'
-import type { Engine } from '../../plugins/bpmn/engines/types'
-import { parseMaxScale } from '../../plugins/bpmn/utils/parseMaxScale'
-import DiagramModeler from '../../shared/ui/DiagramModeler.vue'
+import { BpmnModelerNotation } from '../../src/bpmn/BpmnModelerNotation'
+import type { Engine } from '../../src/bpmn/engines/types'
+import { parseMaxScale } from '../../src/bpmn/utils/parseMaxScale'
+import DiagramModeler from '../../src/shared/ui/DiagramModeler.vue'
 
 const props = withDefaults(defineProps<{
   bpmnFilePath?: string

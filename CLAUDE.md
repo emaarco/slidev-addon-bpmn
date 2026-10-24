@@ -54,9 +54,9 @@ Three static-analysis gates run in the `Build` CI workflow (`.github/workflows/b
 
 **Classes first, helpers in `utils/`.** Behaviour in `.ts` files lives in classes, one per file,
 named like the file. Stateless helper functions live in a `utils/` folder of their layer
-(`shared/lib/utils/`, `plugins/<modeler>/utils/`) and import nothing but other utils. Constant
+(`src/shared/lib/utils/`, `src/<modeler>/utils/`) and import nothing but other utils. Constant
 data objects (`engines/*.ts`, `tokenSimulationViewerModules.ts`) and type-only files
-(`shared/lib/notation.ts`) are fine. `.vue` files are exempt: `<script setup>` is the component's
+(`src/shared/lib/notation.ts`) are fine. `.vue` files are exempt: `<script setup>` is the component's
 own scope. `npm run lint` rejects top-level functions elsewhere and `lint:deps` keeps `utils/` a leaf.
 
 ## Architecture
@@ -65,35 +65,39 @@ own scope. `npm run lint` rejects top-level functions elsewhere and `lint:deps` 
 
 ```
 components/<modeler>/   public Vue components (Slidev registers them globally by filename)
-plugins/<modeler>/      one class per notation role, implementing the interfaces in shared/lib/notation.ts
-shared/                 diagram-js infrastructure used by every modeler
-  lib/notation.ts           the interfaces a modeler plugin implements (see below)
-  lib/DiagramFileLoader.ts  fetches a diagram file + loading/error refs
-  lib/StaticSvgRenderer.ts  off-screen render: container, SVG clean-up, unique ids, padding, sizing
-  lib/EmbeddedViewer.ts     lifecycle of a live viewer in a slide: wait for size, render once, refit, destroy
-  lib/PageStylesheet.ts     adds a stylesheet to the page and removes it again
-  lib/engineConfig.ts       the shape of an engine's modules + moddle extensions
-  lib/utils/                fitDiagram (pad, clamp, centre a canvas viewbox), SVG and URL helpers
-  ui/StaticDiagram.vue      renders a StaticNotation from a file or a given source as SVG
-  ui/LiveDiagram.vue        renders a LiveNotation in a live viewer (EmbeddedViewer + onSlideEnter)
-  ui/DiagramModeler.vue     preview (static or live) + Edit button + fullscreen modeler + properties panel
-  ui/FullscreenOverlay.vue  fullscreen overlay that keeps key strokes from Slidev's navigation
-  ui/ToolbarButton.vue      toolbar button used by the interactive components
-setup/main.ts           registers the BPMN components for this repo's own demo deck
+src/                    all other production code, published with the package
+  <modeler>/              one class per notation role, implementing the interfaces in src/shared/lib/notation.ts
+  shared/                 diagram-js infrastructure used by every modeler
+    lib/notation.ts           the interfaces a modeler implements (see below)
+    lib/DiagramFileLoader.ts  fetches a diagram file + loading/error refs
+    lib/StaticSvgRenderer.ts  off-screen render: container, SVG clean-up, unique ids, padding, sizing
+    lib/EmbeddedViewer.ts     lifecycle of a live viewer in a slide: wait for size, render once, refit, destroy
+    lib/PageStylesheet.ts     adds a stylesheet to the page and removes it again
+    lib/engineConfig.ts       the shape of an engine's modules + moddle extensions
+    lib/utils/                fitDiagram (pad, clamp, centre a canvas viewbox), SVG and URL helpers
+    ui/StaticDiagram.vue      renders a StaticNotation from a file or a given source as SVG
+    ui/LiveDiagram.vue        renders a LiveNotation in a live viewer (EmbeddedViewer + onSlideEnter)
+    ui/DiagramModeler.vue     preview (static or live) + Edit button + fullscreen modeler + properties panel
+    ui/FullscreenOverlay.vue  fullscreen overlay that keeps key strokes from Slidev's navigation
+    ui/ToolbarButton.vue      toolbar button used by the interactive components
+setup/main.ts           demo deck only (Slidev auto-loads <deck root>/setup/): registers the BPMN components
 tools/oxlint/           the architecture lint rule
-tests/                  mirrors the layout above
+tests/                  mirrors components/ and src/
 ```
+
+Only `components/` and `src/` ship; `setup/` is a Slidev convention of the demo deck, like
+`example.md` and `public/`.
 
 The vue components have to live under `components/`: Slidev only registers components from
 `<root>/components` (subfolders included, by filename). Nothing but components may live there,
 because every `.vue`/`.ts` file in it becomes a global in the consuming deck — see
 `components/README.md`.
 
-dependency-cruiser enforces that imports only point "down" (`components/` → `plugins/` →
-`shared/`, with `shared/` as a leaf) and that **one modeler never imports another**: `bpmn` and
-`dmn` only meet in `shared/`.
+dependency-cruiser enforces that imports only point "down" (`components/` → `src/<modeler>/` →
+`src/shared/`, with `src/shared/` as a leaf) and that **one modeler never imports another**:
+`bpmn` and `dmn` only meet in `src/shared/`.
 
-### The notation seam (`shared/lib/notation.ts`)
+### The notation seam (`src/shared/lib/notation.ts`)
 
 Every component is a thin wrapper that hands a notation object to a shared UI component:
 
@@ -107,14 +111,14 @@ Every component is a thin wrapper that hands a notation object to a shared UI co
 static SVG otherwise. On Close it awaits `exportSource()` and re-renders the preview only if the
 source changed — `BpmnModelerSession` returns the imported XML untouched when no command ran.
 
-**Adding a modeler** = a `components/<name>/` folder for its components, a `plugins/<name>/`
+**Adding a modeler** = a `components/<name>/` folder for its components, a `src/<name>/`
 folder with a notation class, its entries in `vite.config.ts` `optimizeDeps.include`, and tests
 under `tests/`. The isolation rule covers the new folder without changes. Implement
-`StaticNotation` and `ModelerNotation` in one class, then wrap `shared/ui/StaticDiagram.vue` and
-`shared/ui/DiagramModeler.vue` in two thin components — see `plugins/wardley-maps/WardleyMapNotation.ts`
+`StaticNotation` and `ModelerNotation` in one class, then wrap `src/shared/ui/StaticDiagram.vue` and
+`src/shared/ui/DiagramModeler.vue` in two thin components — see `src/wardley-maps/WardleyMapNotation.ts`
 and `components/wardley-maps/`.
 
-### BPMN (`components/bpmn/`, `plugins/bpmn/`)
+### BPMN (`components/bpmn/`, `src/bpmn/`)
 
 - **`Bpmn.vue`** — static SVG via `BpmnDiagramNotation` (best for PDF exports).
 - **`BpmnTokenSimulation.vue`** — `LiveDiagram` with `BpmnTokenSimulationNotation`; its viewer
@@ -123,19 +127,19 @@ and `components/wardley-maps/`.
   when the first viewer is created. The Expand button opens a second `EmbeddedViewer` in a
   `FullscreenOverlay`.
 - **`BpmnModeler.vue`** — `DiagramModeler` with `BpmnModelerNotation`. `engine` (`"zeebe"` |
-  `"camunda7"`) mounts the properties panel; the engine wiring lives in `plugins/bpmn/engines/`
+  `"camunda7"`) mounts the properties panel; the engine wiring lives in `src/bpmn/engines/`
   (one file per engine, looked up via `engines/bpmnEngines.ts`). Adding an engine = one file plus
   one entry there. `tokenSimulation` adds the token simulation to preview and modeler.
   `transactionBoundaries` shows the `camunda-transaction-boundaries` overlay; it only takes effect
   with `engine="camunda7"` since it reads `camunda:asyncBefore`/`asyncAfter`.
   `BpmnModelerSession` builds the modeler config and tracks `commandStack.changed`.
 
-### DMN (`components/dmn/`, `plugins/dmn/`)
+### DMN (`components/dmn/`, `src/dmn/`)
 
 - **`DmnDrd.vue`** — static SVG of the DRD via `DrdDiagramNotation` (opens the `drd` view, `fontSize` prop).
 - **`DmnTable.vue`** — `LiveDiagram` with `DecisionTableNotation`: decision tables are HTML, not SVG,
   so they render in the DOM. Opens the table selected by `decisionId` (or the first one). Shared
-  table styling is `plugins/dmn/decisionTable.css`.
+  table styling is `src/dmn/decisionTable.css`.
 - **`DmnSimulate.vue`** — decision table plus an input form, using `EmbeddedViewer` directly
   because the table is teleported to `<body>` in fullscreen. `DecisionSimulation` wraps
   `parseDecisionModelFromXml` / `evaluateDecision` from
@@ -146,14 +150,14 @@ and `components/wardley-maps/`.
 - **`DmnModeler.vue`** — `DiagramModeler` with `DmnModelerNotation`: live DRD preview
   (`DrdLiveViewer`, never enlarged past native size) and a fullscreen `dmn-js/lib/Modeler`. With
   `engine="camunda"` `DmnModelerSession` mounts `dmn-js-properties-panel`; the config from
-  `plugins/dmn/engines/camunda.ts` is nested under the modeler's **`drd:` key** (dmn-js modelers are
+  `src/dmn/engines/camunda.ts` is nested under the modeler's **`drd:` key** (dmn-js modelers are
   composed of per-view editors), with `moddleExtensions` at the top level. Without a `dmnFilePath`
   it starts from a blank DMN.
 
 ### Team Topologies, Wardley Maps and Event Storming
 
 Each notation has two thin components under `components/<notation>/` and one notation class under
-`plugins/<notation>/` (`TeamTopologiesNotation`, `WardleyMapNotation`, `EventStormingNotation`)
+`src/<notation>/` (`TeamTopologiesNotation`, `WardleyMapNotation`, `EventStormingNotation`)
 implementing `StaticNotation` and `ModelerNotation`.
 
 - **Team Topologies** files are JSON. They are validated with `parseDocument` from
@@ -187,11 +191,11 @@ implementing `StaticNotation` and `ModelerNotation`.
   While a `FullscreenOverlay` is open it stops `keydown` at `document`, so Delete, undo and the
   arrow keys reach the modeler without changing the slide.
 - Diagram file paths are resolved relative to `window.location.origin + import.meta.env.BASE_URL`
-  (`shared/lib/utils/resolveWithinBase.ts`).
+  (`src/shared/lib/utils/resolveWithinBase.ts`).
 - `fitDiagram` lets a small diagram grow up to 2× by default. BPMN components expose that cap as
   the `maxScale` prop; the DMN DRD preview passes `1` so it is never enlarged past its native size.
-- The `engine` props are typed per modeler (`plugins/bpmn/engines/types.ts`: `'zeebe' | 'camunda7'`,
-  `plugins/dmn/engines/types.ts`: `'camunda'`).
+- The `engine` props are typed per modeler (`src/bpmn/engines/types.ts`: `'zeebe' | 'camunda7'`,
+  `src/dmn/engines/types.ts`: `'camunda'`).
 
 ### Vite Configuration
 
@@ -201,8 +205,7 @@ The `vite.config.ts` file is **critical** for this addon to work. It lists the b
 
 The npm package includes only:
 - `components/` directory (`bpmn/*.vue`, `dmn/*.vue`, `team-topologies/*.vue`, `wardley-maps/*.vue`, `event-storming/*.vue`)
-- `plugins/` directory (the notation classes, `engines/*`, `utils/*`, `dmn/decisionTable.css`)
-- `shared/` directory (`ui/*.vue`, `lib/*.ts`, `lib/utils/*.ts`)
+- `src/` directory (`shared/` plus one folder per modeler with its notation classes, `engines/*`, `utils/*` and `dmn/decisionTable.css`)
 - `vite.config.ts` (required Vite configuration)
 
 Everything else (`example.md`, `public/`, `docs/`, `setup/`, `tests/`, `tools/`) is excluded via the `files` field in package.json.

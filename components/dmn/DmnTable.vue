@@ -17,9 +17,9 @@ import 'dmn-js/dist/assets/dmn-js-shared.css'
 import 'dmn-js/dist/assets/dmn-js-decision-table.css'
 import 'dmn-js/dist/assets/dmn-js-decision-table-controls.css'
 import 'dmn-js/dist/assets/dmn-font/css/dmn-embedded.css'
-import '../../plugins/dmn/decisionTable.css'
-import { DecisionTableNotation } from '../../plugins/dmn/DecisionTableNotation'
-import LiveDiagram from '../../shared/ui/LiveDiagram.vue'
+import '../../src/dmn/decisionTable.css'
+import { DecisionTableNotation } from '../../src/dmn/DecisionTableNotation'
+import LiveDiagram from '../../src/shared/ui/LiveDiagram.vue'
 
 const props = withDefaults(defineProps<{
   dmnFilePath: string

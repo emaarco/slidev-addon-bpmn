@@ -2,13 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 
-vi.mock('bpmn-js/lib/Viewer', async () => ({ default: (await import('../../plugins/bpmn/fakeBpmnJs')).FakeBpmnViewer }))
+vi.mock('bpmn-js/lib/Viewer', async () => ({ default: (await import('../../src/bpmn/fakeBpmnJs')).FakeBpmnViewer }))
 vi.mock('bpmn-js-token-simulation/lib/viewer', () => ({ default: 'token-simulation-viewer' }))
 vi.mock('@emaarco/bpmn-js-data-simulation', () => ({ default: 'data-simulation' }))
-vi.mock('../../../plugins/bpmn/engines/zeebe', () => ({
+vi.mock('../../../src/bpmn/engines/zeebe', () => ({
   zeebeEngine: { additionalModules: ['zeebe-module'], moddleExtensions: { zeebe: { name: 'zeebe' } } },
 }))
-vi.mock('../../../plugins/bpmn/engines/camunda7', () => ({
+vi.mock('../../../src/bpmn/engines/camunda7', () => ({
   camunda7Engine: { additionalModules: ['camunda7-module'], moddleExtensions: { camunda: { name: 'camunda' } } },
 }))
 
@@ -19,7 +19,7 @@ vi.mock('@slidev/client', () => ({
 }))
 
 import BpmnTokenSimulation from '../../../components/bpmn/BpmnTokenSimulation.vue'
-import { bpmnJs, SMALL_DIAGRAM } from '../../plugins/bpmn/fakeBpmnJs'
+import { bpmnJs, SMALL_DIAGRAM } from '../../src/bpmn/fakeBpmnJs'
 
 enableAutoUnmount(afterEach)
 

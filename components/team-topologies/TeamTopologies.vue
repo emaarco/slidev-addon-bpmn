@@ -8,8 +8,8 @@
 </template>
 
 <script setup lang="ts">
-import { TeamTopologiesNotation } from '../../plugins/team-topologies/TeamTopologiesNotation'
-import StaticDiagram from '../../shared/ui/StaticDiagram.vue'
+import { TeamTopologiesNotation } from '../../src/team-topologies/TeamTopologiesNotation'
+import StaticDiagram from '../../src/shared/ui/StaticDiagram.vue'
 
 const props = withDefaults(defineProps<{
   teamTopologiesFilePath: string

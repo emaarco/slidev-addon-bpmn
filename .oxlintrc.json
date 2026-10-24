@@ -16,7 +16,7 @@
   "jsPlugins": ["./tools/oxlint/architecture-plugin.mjs"],
   "overrides": [
     {
-      "files": ["components/**/*.ts", "plugins/**/*.ts", "shared/**/*.ts"],
+      "files": ["components/**/*.ts", "src/**/*.ts"],
       "rules": {
         "architecture/no-top-level-functions": "error"
       }

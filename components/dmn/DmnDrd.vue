@@ -12,8 +12,8 @@ import 'dmn-js/dist/assets/diagram-js.css'
 import 'dmn-js/dist/assets/dmn-js-shared.css'
 import 'dmn-js/dist/assets/dmn-js-drd.css'
 import 'dmn-js/dist/assets/dmn-font/css/dmn-embedded.css'
-import { DrdDiagramNotation } from '../../plugins/dmn/DrdDiagramNotation'
-import StaticDiagram from '../../shared/ui/StaticDiagram.vue'
+import { DrdDiagramNotation } from '../../src/dmn/DrdDiagramNotation'
+import StaticDiagram from '../../src/shared/ui/StaticDiagram.vue'
 
 const props = withDefaults(defineProps<{
   dmnFilePath: string

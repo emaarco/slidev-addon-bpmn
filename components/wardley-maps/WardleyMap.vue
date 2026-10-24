@@ -8,8 +8,8 @@
 </template>
 
 <script setup lang="ts">
-import { WardleyMapNotation } from '../../plugins/wardley-maps/WardleyMapNotation'
-import StaticDiagram from '../../shared/ui/StaticDiagram.vue'
+import { WardleyMapNotation } from '../../src/wardley-maps/WardleyMapNotation'
+import StaticDiagram from '../../src/shared/ui/StaticDiagram.vue'
 
 const props = withDefaults(defineProps<{
   wardleyMapFilePath: string

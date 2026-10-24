@@ -12,10 +12,10 @@
     "build:pages": "slidev build example.md --base /slidev-addon-diagram-js/ --out dist",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint:deps": "depcruise components plugins shared --config .dependency-cruiser.cjs --output-type err",
+    "lint:deps": "depcruise components src --config .dependency-cruiser.cjs --output-type err",
     "knip": "knip",
     "knip:fix": "knip --fix",
-    "lint": "oxlint components plugins shared setup"
+    "lint": "oxlint components src setup"
   },
   "author": "Marco Schäck (https://github.com/emaarco)",
   "license": "MIT",
@@ -73,8 +73,7 @@
   ],
   "files": [
     "components",
-    "plugins",
-    "shared",
+    "src",
     "vite.config.ts"
   ],
   "sideEffects": [

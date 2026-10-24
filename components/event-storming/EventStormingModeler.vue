@@ -10,8 +10,8 @@
 
 <script setup lang="ts">
 import modelerStyles from '@miragon/event-storming-renderer/assets/event-storming.css?inline'
-import { EventStormingNotation } from '../../plugins/event-storming/EventStormingNotation'
-import DiagramModeler from '../../shared/ui/DiagramModeler.vue'
+import { EventStormingNotation } from '../../src/event-storming/EventStormingNotation'
+import DiagramModeler from '../../src/shared/ui/DiagramModeler.vue'
 
 const props = withDefaults(defineProps<{
   eventStormingFilePath?: string

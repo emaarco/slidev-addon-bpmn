@@ -14,8 +14,7 @@ const config: KnipConfig = {
   entry: ['setup/main.ts', 'components/**/*.vue'],
   project: [
     'components/**/*.{ts,vue}',
-    'plugins/**/*.ts',
-    'shared/**/*.{ts,vue}',
+    'src/**/*.{ts,vue}',
     'setup/**/*.ts',
   ],
   // @slidev/client and @slidev/types are supplied at runtime by the @slidev/cli
