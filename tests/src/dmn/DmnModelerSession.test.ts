@@ -12,7 +12,7 @@ const { MockDmnModeler, modeler } = vi.hoisted(() => ({
 
 vi.mock('dmn-js/lib/Modeler', () => ({ default: MockDmnModeler }))
 vi.mock('../../../src/dmn/engines/camunda', () => ({
-  camundaEngine: { additionalModules: ['CAMUNDA_MODULE'], moddleExtensions: { camunda: { name: 'Camunda' } } },
+  camundaEngine: { drdModules: ['CAMUNDA_MODULE'], moddleExtensions: { camunda: { name: 'Camunda' } } },
 }))
 
 import { DmnModelerSession } from '../../../src/dmn/DmnModelerSession'
@@ -97,11 +97,18 @@ describe('DmnModelerSession', () => {
     expect(modeler.destroy).toHaveBeenCalledOnce()
   })
 
-  it('exports the formatted XML', async () => {
+  it('reports no changes when the model serialises as it did after import', async () => {
     const session = await DmnModelerSession.open('<xml/>', { canvas })
 
-    await expect(session.exportSource()).resolves.toBe('<definitions id="saved"/>')
+    await expect(session.exportChanges()).resolves.toBeNull()
     expect(modeler.saveXML).toHaveBeenCalledWith({ format: true })
+  })
+
+  it('exports the formatted XML once the model changed', async () => {
+    const session = await DmnModelerSession.open('<xml/>', { canvas })
+    modeler.saveXML.mockResolvedValue({ xml: '<definitions id="edited"/>' })
+
+    await expect(session.exportChanges()).resolves.toBe('<definitions id="edited"/>')
   })
 
   it('tells the active canvas about a resize', async () => {

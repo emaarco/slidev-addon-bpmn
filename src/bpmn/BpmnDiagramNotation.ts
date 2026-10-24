@@ -3,6 +3,7 @@ import type { StaticNotation } from '../shared/lib/notation'
 
 export class BpmnDiagramNotation implements StaticNotation {
   readonly kind = 'BPMN'
+  readonly rendering = 'static'
 
   async exportSvg(source: string, container: HTMLElement): Promise<string> {
     const viewer = new BpmnViewer({ container })

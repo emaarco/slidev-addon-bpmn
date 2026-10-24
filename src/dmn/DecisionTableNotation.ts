@@ -3,6 +3,7 @@ import { DecisionTableViewer } from './DecisionTableViewer'
 
 export class DecisionTableNotation implements LiveNotation {
   readonly kind = 'DMN'
+  readonly rendering = 'live'
 
   constructor(private readonly decisionId?: string) {}
 

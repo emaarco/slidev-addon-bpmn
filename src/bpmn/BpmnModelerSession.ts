@@ -2,8 +2,7 @@ import BpmnModeler from 'bpmn-js/lib/Modeler'
 import tokenSimulationModeler from 'bpmn-js-token-simulation'
 import type { ModelerContainers, ModelerSession } from '../shared/lib/notation'
 import { fitDiagram } from '../shared/lib/utils/fitDiagram'
-import { bpmnEngines } from './engines/bpmnEngines'
-import type { Engine } from './engines/types'
+import { type Engine, bpmnEngines } from './engines/bpmnEngines'
 
 export interface BpmnModelerOptions {
   engine?: Engine
@@ -15,10 +14,7 @@ export interface BpmnModelerOptions {
 export class BpmnModelerSession implements ModelerSession {
   private hasChanges = false
 
-  private constructor(
-    private readonly modeler: InstanceType<typeof BpmnModeler>,
-    private readonly importedSource: string,
-  ) {
+  private constructor(private readonly modeler: InstanceType<typeof BpmnModeler>) {
     const eventBus = modeler.get('eventBus') as any
     eventBus.on('commandStack.changed', () => { this.hasChanges = true })
   }
@@ -32,16 +28,16 @@ export class BpmnModelerSession implements ModelerSession {
       throw err
     }
 
-    const session = new BpmnModelerSession(modeler, source)
+    const session = new BpmnModelerSession(modeler)
     session.fit(options.maxScale)
     if (options.transactionBoundaries) session.showTransactionBoundaries(options.engine)
     return session
   }
 
-  async exportSource(): Promise<string> {
-    if (!this.hasChanges) return this.importedSource
+  async exportChanges(): Promise<string | null> {
+    if (!this.hasChanges) return null
     const { xml } = await this.modeler.saveXML({ format: true })
-    return xml ?? this.importedSource
+    return xml ?? null
   }
 
   resized(): void {
@@ -59,7 +55,7 @@ export class BpmnModelerSession implements ModelerSession {
   }
 
   private showTransactionBoundaries(engine?: Engine): void {
-    if (engine !== 'camunda7') {
+    if (!engine || !bpmnEngines[engine].supportsTransactionBoundaries) {
       console.warn('[BpmnModeler] transactionBoundaries requires engine="camunda7"; ignoring.')
       return
     }
@@ -77,10 +73,10 @@ export class BpmnModelerSession implements ModelerSession {
 
     if (options.engine) {
       const engine = bpmnEngines[options.engine]
-      config.propertiesPanel = { parent: containers.propertiesPanel }
       config.moddleExtensions = engine.moddleExtensions
       additionalModules.push(...engine.additionalModules)
     }
+    if (containers.propertiesPanel) config.propertiesPanel = { parent: containers.propertiesPanel }
     if (options.tokenSimulation) additionalModules.push(tokenSimulationModeler)
     if (additionalModules.length) config.additionalModules = additionalModules
 

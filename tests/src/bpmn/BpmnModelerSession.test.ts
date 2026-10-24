@@ -3,10 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('bpmn-js/lib/Modeler', async () => ({ default: (await import('./fakeBpmnJs')).FakeBpmnModeler }))
 vi.mock('bpmn-js-token-simulation', () => ({ default: 'token-simulation-modeler' }))
 vi.mock('../../../src/bpmn/engines/zeebe', () => ({
-  zeebeEngine: { additionalModules: ['zeebe-module-a', 'zeebe-module-b'], moddleExtensions: { zeebe: { name: 'zeebe' } } },
+  zeebeEngine: { additionalModules: ['zeebe-module-a', 'zeebe-module-b'], moddleExtensions: { zeebe: { name: 'zeebe' } }, supportsTransactionBoundaries: false },
 }))
 vi.mock('../../../src/bpmn/engines/camunda7', () => ({
-  camunda7Engine: { additionalModules: ['camunda7-module'], moddleExtensions: { camunda: { name: 'camunda' } } },
+  camunda7Engine: { additionalModules: ['camunda7-module'], moddleExtensions: { camunda: { name: 'camunda' } }, supportsTransactionBoundaries: true },
 }))
 
 import { type BpmnModelerOptions, BpmnModelerSession } from '../../../src/bpmn/BpmnModelerSession'
@@ -20,7 +20,8 @@ describe('BpmnModelerSession', () => {
   const propertiesPanel = document.createElement('div')
 
   function open(options: Partial<BpmnModelerOptions> = {}) {
-    return BpmnModelerSession.open(SOURCE, { canvas, propertiesPanel }, { ...DEFAULT_OPTIONS, ...options })
+    const containers = options.engine ? { canvas, propertiesPanel } : { canvas }
+    return BpmnModelerSession.open(SOURCE, containers, { ...DEFAULT_OPTIONS, ...options })
   }
 
   beforeEach(() => bpmnJs.reset())
@@ -52,6 +53,13 @@ describe('BpmnModelerSession', () => {
         moddleExtensions: { camunda: { name: 'camunda' } },
         additionalModules: ['camunda7-module'],
       })
+    })
+
+    it('leaves out the properties panel when given no container for it', async () => {
+      await BpmnModelerSession.open(SOURCE, { canvas }, { ...DEFAULT_OPTIONS, engine: 'zeebe' })
+
+      expect(bpmnJs.lastModeler().options.propertiesPanel).toBeUndefined()
+      expect(bpmnJs.lastModeler().options.moddleExtensions).toEqual({ zeebe: { name: 'zeebe' } })
     })
 
     it('adds the token simulation modeler module', async () => {
@@ -122,11 +130,11 @@ describe('BpmnModelerSession', () => {
     })
   })
 
-  describe('exportSource', () => {
-    it('returns the imported source without saving when nothing changed', async () => {
+  describe('exportChanges', () => {
+    it('reports no changes without saving when nothing changed', async () => {
       const session = await open()
 
-      expect(await session.exportSource()).toBe(SOURCE)
+      expect(await session.exportChanges()).toBeNull()
       expect(bpmnJs.lastModeler().saveXML).not.toHaveBeenCalled()
     })
 
@@ -134,16 +142,16 @@ describe('BpmnModelerSession', () => {
       const session = await open()
       bpmnJs.lastModeler().fire('commandStack.changed')
 
-      expect(await session.exportSource()).toBe('<definitions>edited</definitions>')
+      expect(await session.exportChanges()).toBe('<definitions>edited</definitions>')
       expect(bpmnJs.lastModeler().saveXML).toHaveBeenCalledWith({ format: true })
     })
 
-    it('falls back to the imported source when saving yields no XML', async () => {
+    it('reports no changes when saving yields no XML', async () => {
       bpmnJs.savedXml = undefined
       const session = await open()
       bpmnJs.lastModeler().fire('commandStack.changed')
 
-      expect(await session.exportSource()).toBe(SOURCE)
+      expect(await session.exportChanges()).toBeNull()
     })
   })
 

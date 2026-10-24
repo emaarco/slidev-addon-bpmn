@@ -9,6 +9,7 @@ import type { ModelerContainers, ModelerNotation, ModelerSession, StaticNotation
 
 export class TeamTopologiesNotation implements StaticNotation, ModelerNotation {
   readonly kind = 'Team Topologies'
+  readonly rendering = 'static'
   readonly blankSource = serializeDocument(emptyDocument())
 
   async exportSvg(source: string, container: HTMLElement): Promise<string> {
@@ -26,9 +27,14 @@ export class TeamTopologiesNotation implements StaticNotation, ModelerNotation {
   async openModeler(source: string, { canvas }: ModelerContainers): Promise<ModelerSession> {
     const modeler = new Modeler({ container: canvas })
     modeler.importDocument(this.parse(source))
+    const serialize = () => serializeDocument(modeler.exportDocument())
+    const importedSource = serialize()
 
     return {
-      exportSource: () => serializeDocument(modeler.exportDocument()),
+      exportChanges: async () => {
+        const source = serialize()
+        return source === importedSource ? null : source
+      },
       destroy: () => modeler.destroy(),
     }
   }

@@ -8,10 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import 'dmn-js/dist/assets/diagram-js.css'
-import 'dmn-js/dist/assets/dmn-js-shared.css'
-import 'dmn-js/dist/assets/dmn-js-drd.css'
-import 'dmn-js/dist/assets/dmn-font/css/dmn-embedded.css'
+import '../../src/dmn/dmn.css'
 import { DrdDiagramNotation } from '../../src/dmn/DrdDiagramNotation'
 import StaticDiagram from '../../src/shared/ui/StaticDiagram.vue'
 

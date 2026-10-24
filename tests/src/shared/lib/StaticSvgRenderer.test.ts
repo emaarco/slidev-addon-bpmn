@@ -6,7 +6,7 @@ import { StaticSvgRenderer } from '../../../../src/shared/lib/StaticSvgRenderer'
 const SAMPLE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="50" height="50"/></svg>'
 
 function notationExporting(exportSvg: (container: HTMLElement) => Promise<string>): StaticNotation {
-  return { kind: 'Test', exportSvg: (_source, container) => exportSvg(container) }
+  return { kind: 'Test', rendering: 'static', exportSvg: (_source, container) => exportSvg(container) }
 }
 
 function renderStaticSvg(exportSvg: (container: HTMLElement) => Promise<string>): Promise<string> {
@@ -17,7 +17,7 @@ describe('StaticSvgRenderer', () => {
   it('hands the notation the source to export', async () => {
     const exportSvg = vi.fn().mockResolvedValue(SAMPLE_SVG)
 
-    await new StaticSvgRenderer().render({ kind: 'Test', exportSvg }, 'title Order Checkout')
+    await new StaticSvgRenderer().render({ kind: 'Test', rendering: 'static', exportSvg }, 'title Order Checkout')
 
     expect(exportSvg).toHaveBeenCalledWith('title Order Checkout', expect.any(HTMLElement))
   })

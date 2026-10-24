@@ -4,6 +4,7 @@ import type { ModelerContainers, ModelerNotation, ModelerSession, StaticNotation
 
 export class EventStormingNotation implements StaticNotation, ModelerNotation {
   readonly kind = 'Event Storming'
+  readonly rendering = 'static'
   readonly blankSource = 'title New Board'
 
   async exportSvg(source: string, container: HTMLElement): Promise<string> {
@@ -20,9 +21,13 @@ export class EventStormingNotation implements StaticNotation, ModelerNotation {
   async openModeler(source: string, { canvas }: ModelerContainers): Promise<ModelerSession> {
     const modeler = new Modeler({ container: canvas })
     await modeler.importDSL(source)
+    const importedSource = modeler.exportDSL()
 
     return {
-      exportSource: () => modeler.exportDSL(),
+      exportChanges: async () => {
+        const source = modeler.exportDSL()
+        return source === importedSource ? null : source
+      },
       destroy: () => modeler.destroy(),
     }
   }

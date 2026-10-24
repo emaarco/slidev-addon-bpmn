@@ -18,7 +18,7 @@ import {
 
 describe('camundaEngine', () => {
   it('bundles the three DMN properties-panel modules', () => {
-    expect(camundaEngine.additionalModules).toEqual([
+    expect(camundaEngine.drdModules).toEqual([
       DmnPropertiesPanelModule,
       DmnPropertiesProviderModule,
       CamundaPropertiesProviderModule,

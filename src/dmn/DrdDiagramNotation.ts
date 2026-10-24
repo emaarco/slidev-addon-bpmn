@@ -5,6 +5,7 @@ const DEFAULT_FONT_SIZE = 12
 
 export class DrdDiagramNotation implements StaticNotation {
   readonly kind = 'DMN'
+  readonly rendering = 'static'
   private readonly fontSize: number
 
   constructor(fontSize: string) {

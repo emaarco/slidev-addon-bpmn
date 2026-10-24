@@ -14,7 +14,7 @@ const EDITED_SOURCE = 'title Order Checkout\nevent Order Placed [620, 300]'
 const MODELER_STYLES = '.djs-palette { top: 12px; }'
 
 type FakeSession = {
-  exportSource: ReturnType<typeof vi.fn>
+  exportChanges: ReturnType<typeof vi.fn>
   resized: ReturnType<typeof vi.fn>
   destroy: ReturnType<typeof vi.fn>
 }
@@ -49,7 +49,7 @@ describe('DiagramModeler.vue', () => {
   let session: FakeSession
 
   function staticNotation(overrides: Partial<ModelerNotation> = {}): ModelerNotation & StaticNotation {
-    return { kind: 'Event Storming', blankSource: 'title New Board', exportSvg, openModeler, ...overrides }
+    return { kind: 'Event Storming', rendering: 'static', blankSource: 'title New Board', exportSvg, openModeler, ...overrides }
   }
 
   function mountModeler(
@@ -90,7 +90,7 @@ describe('DiagramModeler.vue', () => {
   }
 
   beforeEach(() => {
-    session = { exportSource: vi.fn().mockReturnValue(FILE_SOURCE), resized: vi.fn(), destroy: vi.fn() }
+    session = { exportChanges: vi.fn().mockResolvedValue(null), resized: vi.fn(), destroy: vi.fn() }
     exportSvg = vi.fn().mockResolvedValue(SAMPLE_SVG)
     openModeler = vi.fn().mockResolvedValue(session)
     vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -147,7 +147,7 @@ describe('DiagramModeler.vue', () => {
   })
 
   it('shows the edited diagram in the preview after closing', async () => {
-    session.exportSource.mockReturnValue(EDITED_SOURCE)
+    session.exportChanges.mockResolvedValue(EDITED_SOURCE)
     await mountRenderedModeler()
 
     await openAndCloseModeler()
@@ -157,18 +157,8 @@ describe('DiagramModeler.vue', () => {
     expect(findButton('Close')).toBeUndefined()
   })
 
-  it('waits for an asynchronous export before updating the preview', async () => {
-    session.exportSource.mockResolvedValue(EDITED_SOURCE)
-    await mountRenderedModeler()
-
-    await openAndCloseModeler()
-
-    expect(exportSvg).toHaveBeenCalledTimes(2)
-    expect(exportSvg.mock.calls[1][0]).toBe(EDITED_SOURCE)
-  })
-
   it('reopens the modeler with the edited source', async () => {
-    session.exportSource.mockReturnValue(EDITED_SOURCE)
+    session.exportChanges.mockResolvedValue(EDITED_SOURCE)
     await mountRenderedModeler()
     await openAndCloseModeler()
 
@@ -194,7 +184,7 @@ describe('DiagramModeler.vue', () => {
   })
 
   it('keeps the preview when the edited diagram cannot be exported', async () => {
-    session.exportSource.mockImplementation(() => {
+    session.exportChanges.mockImplementation(() => {
       throw new Error('export failed')
     })
     await mountRenderedModeler()
@@ -207,7 +197,7 @@ describe('DiagramModeler.vue', () => {
   })
 
   it('keeps the preview when an asynchronous export fails', async () => {
-    session.exportSource.mockRejectedValue(new Error('export failed'))
+    session.exportChanges.mockRejectedValue(new Error('export failed'))
     await mountRenderedModeler()
 
     await openAndCloseModeler()
@@ -228,7 +218,7 @@ describe('DiagramModeler.vue', () => {
     await flushPromises()
 
     expect(session.destroy).toHaveBeenCalledOnce()
-    expect(session.exportSource).not.toHaveBeenCalled()
+    expect(session.exportChanges).not.toHaveBeenCalled()
     expect(findButton('Close')).toBeUndefined()
     expect(modelerStylesAreApplied()).toBe(false)
   })
@@ -246,7 +236,7 @@ describe('DiagramModeler.vue', () => {
   })
 
   it('keeps only the modeler of the latest Edit when an earlier one finishes opening late', async () => {
-    const lateSession: FakeSession = { exportSource: vi.fn(), resized: vi.fn(), destroy: vi.fn() }
+    const lateSession: FakeSession = { exportChanges: vi.fn(), resized: vi.fn(), destroy: vi.fn() }
     let finishFirstOpening!: (opened: FakeSession) => void
     openModeler.mockReturnValueOnce(new Promise((resolve) => { finishFirstOpening = resolve }))
     await mountRenderedModeler()
@@ -259,8 +249,8 @@ describe('DiagramModeler.vue', () => {
     await closeModeler()
 
     expect(lateSession.destroy).toHaveBeenCalledOnce()
-    expect(lateSession.exportSource).not.toHaveBeenCalled()
-    expect(session.exportSource).toHaveBeenCalledOnce()
+    expect(lateSession.exportChanges).not.toHaveBeenCalled()
+    expect(session.exportChanges).toHaveBeenCalledOnce()
   })
 
   it('applies the modeler styles only while the modeler is open', async () => {
@@ -387,6 +377,7 @@ describe('DiagramModeler.vue', () => {
     function liveNotation(): ModelerNotation & LiveNotation {
       return {
         kind: 'BPMN',
+        rendering: 'live',
         blankSource: '<definitions/>',
         openModeler,
         createViewer: vi.fn(async () => {
@@ -427,7 +418,7 @@ describe('DiagramModeler.vue', () => {
     })
 
     it('shows the edited diagram in the live viewer after closing', async () => {
-      session.exportSource.mockResolvedValue(EDITED_SOURCE)
+      session.exportChanges.mockResolvedValue(EDITED_SOURCE)
       await mountLiveModeler()
 
       await openAndCloseModeler()

@@ -5,9 +5,9 @@ import {
 } from 'bpmn-js-properties-panel'
 import ZeebeBehaviorsModule from 'camunda-bpmn-js-behaviors/lib/camunda-cloud'
 import zeebeModdle from 'zeebe-bpmn-moddle/resources/zeebe.json'
-import type { EngineConfig } from '../../shared/lib/engineConfig'
+import type { BpmnEngine } from './BpmnEngine'
 
-export const zeebeEngine: EngineConfig = {
+export const zeebeEngine: BpmnEngine = {
   additionalModules: [
     BpmnPropertiesPanelModule,
     BpmnPropertiesProviderModule,
@@ -15,4 +15,5 @@ export const zeebeEngine: EngineConfig = {
     ZeebeBehaviorsModule,
   ],
   moddleExtensions: { zeebe: zeebeModdle },
+  supportsTransactionBoundaries: false,
 }

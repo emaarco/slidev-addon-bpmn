@@ -30,7 +30,7 @@ const { MockDmnViewer, viewer, viewerCanvas, MockDmnModeler, modeler, modelerCan
 vi.mock('dmn-js/lib/Viewer', () => ({ default: MockDmnViewer }))
 vi.mock('dmn-js/lib/Modeler', () => ({ default: MockDmnModeler }))
 vi.mock('../../../src/dmn/engines/camunda', () => ({
-  camundaEngine: { additionalModules: ['MODULE'], moddleExtensions: { camunda: {} } },
+  camundaEngine: { drdModules: ['MODULE'], moddleExtensions: { camunda: {} } },
 }))
 vi.mock('@slidev/client', () => ({ onSlideEnter: vi.fn() }))
 

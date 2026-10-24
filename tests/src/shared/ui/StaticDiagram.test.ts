@@ -21,7 +21,7 @@ function mockFetchFailure() {
 }
 
 function eventStormingNotation(exportSvg: ReturnType<typeof vi.fn>): StaticNotation {
-  return { kind: 'Event Storming', exportSvg }
+  return { kind: 'Event Storming', rendering: 'static', exportSvg }
 }
 
 function mountStaticDiagram(exportSvg = vi.fn().mockResolvedValue(SAMPLE_SVG)) {

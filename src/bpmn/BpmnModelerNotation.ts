@@ -1,6 +1,7 @@
 import type { LiveNotation, LiveViewer, ModelerContainers, ModelerNotation, ModelerSession } from '../shared/lib/notation'
 import { BpmnLiveViewer } from './BpmnLiveViewer'
 import { type BpmnModelerOptions, BpmnModelerSession } from './BpmnModelerSession'
+import { BpmnSimulationViewer } from './BpmnSimulationViewer'
 import { tokenSimulationViewerModules } from './tokenSimulationViewerModules'
 
 // The diagram bpmn-js' Modeler#createDiagram() starts from.
@@ -20,6 +21,7 @@ const BLANK_BPMN = `<?xml version="1.0" encoding="UTF-8"?>
 
 export class BpmnModelerNotation implements LiveNotation, ModelerNotation {
   readonly kind = 'BPMN'
+  readonly rendering = 'live'
   readonly blankSource = BLANK_BPMN
   readonly hasPropertiesPanel: boolean
 
@@ -28,8 +30,8 @@ export class BpmnModelerNotation implements LiveNotation, ModelerNotation {
   }
 
   async createViewer(container: HTMLElement): Promise<LiveViewer> {
-    const viewerOptions = this.options.tokenSimulation ? { additionalModules: tokenSimulationViewerModules } : {}
-    return new BpmnLiveViewer(container, viewerOptions, this.options.maxScale)
+    if (!this.options.tokenSimulation) return new BpmnLiveViewer(container, {}, this.options.maxScale)
+    return new BpmnSimulationViewer(container, { additionalModules: tokenSimulationViewerModules }, this.options.maxScale)
   }
 
   openModeler(source: string, containers: ModelerContainers): Promise<ModelerSession> {

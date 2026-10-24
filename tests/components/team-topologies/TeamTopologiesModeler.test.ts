@@ -120,16 +120,30 @@ describe('TeamTopologiesModeler.vue', () => {
 
   it('shows the edited diagram in the preview after closing and destroys the modeler', async () => {
     mockFetchSuccess()
-    mockModelerExport.mockReturnValue(EDITED_DOCUMENT)
     mountModeler()
     await flushPromises()
+
+    findButton('Edit')!.click()
+    await flushPromises()
+    mockModelerExport.mockReturnValue(EDITED_DOCUMENT)
+    findButton('Close')!.click()
+    await flushPromises()
+
+    expect(mockViewerImport).toHaveBeenLastCalledWith(expect.objectContaining({ title: 'Online shop, reorganised' }))
+    expect(mockModelerDestroy).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the preview when the modeler closes without edits', async () => {
+    mockFetchSuccess()
+    mountModeler()
+    await flushPromises()
+    const rendersBeforeEditing = mockViewerImport.mock.calls.length
 
     findButton('Edit')!.click()
     await flushPromises()
     findButton('Close')!.click()
     await flushPromises()
 
-    expect(mockViewerImport).toHaveBeenLastCalledWith(expect.objectContaining({ title: 'Online shop, reorganised' }))
-    expect(mockModelerDestroy).toHaveBeenCalledOnce()
+    expect(mockViewerImport).toHaveBeenCalledTimes(rendersBeforeEditing)
   })
 })

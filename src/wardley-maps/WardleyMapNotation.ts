@@ -4,6 +4,7 @@ import type { ModelerContainers, ModelerNotation, ModelerSession, StaticNotation
 
 export class WardleyMapNotation implements StaticNotation, ModelerNotation {
   readonly kind = 'Wardley Map'
+  readonly rendering = 'static'
   readonly blankSource = 'title New Map'
 
   async exportSvg(source: string, container: HTMLElement): Promise<string> {
@@ -20,9 +21,13 @@ export class WardleyMapNotation implements StaticNotation, ModelerNotation {
   async openModeler(source: string, { canvas }: ModelerContainers): Promise<ModelerSession> {
     const modeler = new Modeler({ container: canvas })
     await modeler.importDSL(source)
+    const importedSource = modeler.exportDSL()
 
     return {
-      exportSource: () => modeler.exportDSL(),
+      exportChanges: async () => {
+        const source = modeler.exportDSL()
+        return source === importedSource ? null : source
+      },
       destroy: () => modeler.destroy(),
     }
   }

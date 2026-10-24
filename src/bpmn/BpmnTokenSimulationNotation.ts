@@ -2,8 +2,7 @@ import DataSimulationModule from '@emaarco/bpmn-js-data-simulation'
 import tokenSimulationViewer from 'bpmn-js-token-simulation/lib/viewer'
 import type { LiveNotation, LiveViewer } from '../shared/lib/notation'
 import { BpmnSimulationViewer } from './BpmnSimulationViewer'
-import { bpmnEngines } from './engines/bpmnEngines'
-import type { Engine } from './engines/types'
+import { type Engine, bpmnEngines } from './engines/bpmnEngines'
 import { silencedNotificationsModule, tokenSimulationViewerModules } from './tokenSimulationViewerModules'
 
 export interface BpmnTokenSimulationOptions {
@@ -16,6 +15,7 @@ export interface BpmnTokenSimulationOptions {
 
 export class BpmnTokenSimulationNotation implements LiveNotation {
   readonly kind = 'BPMN'
+  readonly rendering = 'live'
 
   constructor(private readonly options: BpmnTokenSimulationOptions) {}
 

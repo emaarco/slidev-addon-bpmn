@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import 'bpmn-js/dist/assets/bpmn-js.css'
+import '../../src/bpmn/bpmn.css'
 import { BpmnDiagramNotation } from '../../src/bpmn/BpmnDiagramNotation'
 import StaticDiagram from '../../src/shared/ui/StaticDiagram.vue'
 

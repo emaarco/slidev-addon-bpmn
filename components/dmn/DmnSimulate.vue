@@ -91,12 +91,7 @@
 
 <script setup lang="ts">
 import { type CSSProperties, computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
-import 'dmn-js/dist/assets/diagram-js.css'
-import 'dmn-js/dist/assets/dmn-js-shared.css'
-import 'dmn-js/dist/assets/dmn-js-decision-table.css'
-import 'dmn-js/dist/assets/dmn-js-decision-table-controls.css'
-import 'dmn-js/dist/assets/dmn-font/css/dmn-embedded.css'
-import '../../src/dmn/decisionTable.css'
+import '../../src/dmn/dmn.css'
 import { onSlideEnter } from '@slidev/client'
 import { type EvaluationResult, type RawValue, isNumericType } from '@emaarco/dmn-js-simulation'
 import { DecisionSimulation } from '../../src/dmn/DecisionSimulation'
@@ -361,7 +356,7 @@ onBeforeUnmount(() => {
   box-shadow: inset 0 0 0 9999px rgba(148, 163, 184, 0.14);
 }
 
-/* --- Table styling: overrides of plugins/dmn/decisionTable.css --- */
+/* --- Table styling: overrides of src/dmn/decisionTable.css --- */
 .dmn-simulate .dmn-table-wrapper .dmn-decision-table-container .decision-table-name {
   font-size: calc(var(--dmn-table-font-size, 12px) * 1.25) !important;
 }

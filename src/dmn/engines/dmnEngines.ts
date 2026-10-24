@@ -1,7 +1,8 @@
-import type { EngineConfig } from '../../shared/lib/engineConfig'
 import { camundaEngine } from './camunda'
-import type { Engine } from './types'
+import type { DmnEngine } from './DmnEngine'
 
-export const dmnEngines: Record<Engine, EngineConfig> = {
+export const dmnEngines = {
   camunda: camundaEngine,
-}
+} satisfies Record<string, DmnEngine>
+
+export type Engine = keyof typeof dmnEngines

@@ -6,10 +6,10 @@ vi.mock('bpmn-js/lib/Viewer', async () => ({ default: (await import('../../src/b
 vi.mock('bpmn-js-token-simulation/lib/viewer', () => ({ default: 'token-simulation-viewer' }))
 vi.mock('@emaarco/bpmn-js-data-simulation', () => ({ default: 'data-simulation' }))
 vi.mock('../../../src/bpmn/engines/zeebe', () => ({
-  zeebeEngine: { additionalModules: ['zeebe-module'], moddleExtensions: { zeebe: { name: 'zeebe' } } },
+  zeebeEngine: { additionalModules: ['zeebe-module'], moddleExtensions: { zeebe: { name: 'zeebe' } }, supportsTransactionBoundaries: false },
 }))
 vi.mock('../../../src/bpmn/engines/camunda7', () => ({
-  camunda7Engine: { additionalModules: ['camunda7-module'], moddleExtensions: { camunda: { name: 'camunda' } } },
+  camunda7Engine: { additionalModules: ['camunda7-module'], moddleExtensions: { camunda: { name: 'camunda' } }, supportsTransactionBoundaries: true },
 }))
 
 const { slideEnterCallbacks } = vi.hoisted(() => ({ slideEnterCallbacks: [] as Array<() => Promise<void>> }))

@@ -1,8 +1,8 @@
 <template>
   <div class="diagram-modeler" :style="{ width: props.width, height: props.height }">
     <LiveDiagram
-      v-if="livePreviewNotation"
-      :notation="livePreviewNotation"
+      v-if="props.notation.rendering === 'live'"
+      :notation="props.notation"
       :filePath="props.filePath"
       :source="previewSource"
       width="100%"
@@ -11,7 +11,7 @@
     />
     <StaticDiagram
       v-else
-      :notation="staticPreviewNotation!"
+      :notation="props.notation"
       :filePath="props.filePath"
       :source="previewSource"
       width="100%"
@@ -76,8 +76,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onUnmounted, ref } from 'vue'
-import type { LiveNotation, ModelerNotation, ModelerSession, PreviewNotation, StaticNotation } from '../lib/notation'
+import { nextTick, onUnmounted, ref } from 'vue'
+import type { ModelerNotation, ModelerSession, PreviewNotation } from '../lib/notation'
 import { PageStylesheet } from '../lib/PageStylesheet'
 import FullscreenOverlay from './FullscreenOverlay.vue'
 import LiveDiagram from './LiveDiagram.vue'
@@ -91,9 +91,6 @@ const props = defineProps<{
   height: string
   modelerStyles?: string
 }>()
-
-const livePreviewNotation = computed(() => 'createViewer' in props.notation ? props.notation as LiveNotation : null)
-const staticPreviewNotation = computed(() => 'exportSvg' in props.notation ? props.notation as StaticNotation : null)
 
 const previewSource = ref<string | undefined>(props.filePath ? undefined : props.notation.blankSource)
 const renderedSource = ref<string | null>(null)
@@ -128,7 +125,7 @@ async function openModeler(source: string): Promise<ModelerSession | null> {
   try {
     return await props.notation.openModeler(source, {
       canvas: modelerCanvasRef.value!,
-      propertiesPanel: propertiesPanelRef.value ?? undefined,
+      propertiesPanel: props.notation.hasPropertiesPanel ? propertiesPanelRef.value! : undefined,
     })
   } catch (err) {
     console.error(`Failed to open the ${props.notation.kind} modeler:`, err)
@@ -137,12 +134,10 @@ async function openModeler(source: string): Promise<ModelerSession | null> {
 }
 
 async function closeFullscreen(): Promise<void> {
-  const editedSource = await exportEditedSource()
+  const editedSource = await exportChanges()
   leaveFullscreen()
 
-  if (editedSource !== null && editedSource !== renderedSource.value) {
-    previewSource.value = editedSource
-  }
+  if (editedSource !== null) previewSource.value = editedSource
 }
 
 async function togglePanel(): Promise<void> {
@@ -163,11 +158,11 @@ function discardModelerSession(): void {
   modelerStylesheet?.detach()
 }
 
-async function exportEditedSource(): Promise<string | null> {
+async function exportChanges(): Promise<string | null> {
   if (!modelerSession) return null
 
   try {
-    return await modelerSession.exportSource()
+    return await modelerSession.exportChanges()
   } catch (err) {
     console.error(`Failed to save ${props.notation.kind} changes:`, err)
     return null
@@ -180,6 +175,12 @@ onUnmounted(discardModelerSession)
 <style scoped>
 .diagram-modeler {
   position: relative;
+}
+
+/* bpmn.io watermark of a live preview; shrink so it stays subordinate in small tiles. */
+.diagram-modeler :deep(.bjs-powered-by) {
+  transform: scale(0.7);
+  transform-origin: bottom right;
 }
 
 .diagram-modeler-canvas {

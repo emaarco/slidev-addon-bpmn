@@ -59,7 +59,7 @@ describe('EmbeddedViewer', () => {
       viewers.push(viewer)
       return viewer
     })
-    notation = { kind: 'Test', createViewer }
+    notation = { kind: 'Test', rendering: 'live', createViewer }
     FakeResizeObserver.instances = []
     vi.stubGlobal('ResizeObserver', FakeResizeObserver)
   })

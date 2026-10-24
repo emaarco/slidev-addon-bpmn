@@ -54,6 +54,14 @@ describe('BpmnModelerNotation', () => {
       expect(additionalModules[1].notifications[0]).toBe('value')
     })
 
+    it('styles the simulation chrome of a token-simulation preview', async () => {
+      const previewContainer = document.createElement('div')
+
+      await new BpmnModelerNotation({ ...DEFAULT_OPTIONS, tokenSimulation: true }).createViewer(previewContainer)
+
+      expect(previewContainer.classList.contains('bpmn-simulation-chrome')).toBe(true)
+    })
+
     it('fits the preview no further than the max scale', async () => {
       bpmnJs.viewbox = SMALL_DIAGRAM
       const viewer = await new BpmnModelerNotation({ ...DEFAULT_OPTIONS, maxScale: 1 }).createViewer(container)

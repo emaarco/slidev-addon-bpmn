@@ -117,16 +117,30 @@ describe('WardleyMapModeler.vue', () => {
 
   it('shows the edited diagram in the preview after closing and destroys the modeler', async () => {
     mockFetchSuccess()
-    mockModelerExport.mockReturnValue(EDITED_SOURCE)
     mountModeler()
     await flushPromises()
+
+    findButton('Edit')!.click()
+    await flushPromises()
+    mockModelerExport.mockReturnValue(EDITED_SOURCE)
+    findButton('Close')!.click()
+    await flushPromises()
+
+    expect(mockViewerImport).toHaveBeenLastCalledWith(EDITED_SOURCE)
+    expect(mockModelerDestroy).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the preview when the modeler closes without edits', async () => {
+    mockFetchSuccess()
+    mountModeler()
+    await flushPromises()
+    const rendersBeforeEditing = mockViewerImport.mock.calls.length
 
     findButton('Edit')!.click()
     await flushPromises()
     findButton('Close')!.click()
     await flushPromises()
 
-    expect(mockViewerImport).toHaveBeenLastCalledWith(EDITED_SOURCE)
-    expect(mockModelerDestroy).toHaveBeenCalledOnce()
+    expect(mockViewerImport).toHaveBeenCalledTimes(rendersBeforeEditing)
   })
 })

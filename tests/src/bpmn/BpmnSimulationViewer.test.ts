@@ -23,6 +23,14 @@ describe('BpmnSimulationViewer', () => {
     expect(FakeBpmnViewer).toHaveBeenCalledWith({ container, additionalModules: modules })
   })
 
+  it('marks its container so the simulation chrome styles apply', () => {
+    const container = containerOfWidth(600)
+
+    new BpmnSimulationViewer(container, {})
+
+    expect(container.classList.contains('bpmn-simulation-chrome')).toBe(true)
+  })
+
   it('imports the source on show', async () => {
     await new BpmnSimulationViewer(containerOfWidth(600), {}).show('<definitions/>')
 

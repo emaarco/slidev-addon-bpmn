@@ -12,12 +12,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import 'dmn-js/dist/assets/diagram-js.css'
-import 'dmn-js/dist/assets/dmn-js-shared.css'
-import 'dmn-js/dist/assets/dmn-js-decision-table.css'
-import 'dmn-js/dist/assets/dmn-js-decision-table-controls.css'
-import 'dmn-js/dist/assets/dmn-font/css/dmn-embedded.css'
-import '../../src/dmn/decisionTable.css'
+import '../../src/dmn/dmn.css'
 import { DecisionTableNotation } from '../../src/dmn/DecisionTableNotation'
 import LiveDiagram from '../../src/shared/ui/LiveDiagram.vue'
 

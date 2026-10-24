@@ -66,7 +66,7 @@ describe('LiveDiagram.vue', () => {
       viewers.push(viewer)
       return viewer
     })
-    notation = { kind: 'BPMN', createViewer }
+    notation = { kind: 'BPMN', rendering: 'live', createViewer }
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 

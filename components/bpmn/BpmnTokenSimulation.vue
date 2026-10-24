@@ -1,7 +1,6 @@
 <template>
   <div class="bpmn-token-simulation" :style="{ width: props.width, height: containerHeight }">
     <LiveDiagram
-      class="bpmn-token-simulation-container"
       :notation="notation"
       :filePath="props.bpmnFilePath"
       width="100%"
@@ -45,11 +44,9 @@
 
 <script setup lang="ts">
 import { nextTick, onUnmounted, ref } from 'vue'
-import 'bpmn-js/dist/assets/bpmn-js.css'
-import 'bpmn-js-token-simulation/assets/css/bpmn-js-token-simulation.css'
-import '@emaarco/bpmn-js-data-simulation/assets/bpmn-js-data-simulation.css'
+import '../../src/bpmn/bpmn.css'
 import { BpmnTokenSimulationNotation } from '../../src/bpmn/BpmnTokenSimulationNotation'
-import type { Engine } from '../../src/bpmn/engines/types'
+import type { Engine } from '../../src/bpmn/engines/bpmnEngines'
 import { parseMaxScale } from '../../src/bpmn/utils/parseMaxScale'
 import { DiagramFileLoader } from '../../src/shared/lib/DiagramFileLoader'
 import { EmbeddedViewer } from '../../src/shared/lib/EmbeddedViewer'
@@ -115,32 +112,5 @@ onUnmounted(closeFullscreen)
 .bpmn-token-simulation-fullscreen {
   width: 100%;
   height: 100%;
-}
-
-:deep(.bpmn-token-simulation-container .bts-toggle-mode),
-:deep(.bpmn-token-simulation-container .bts-palette),
-:deep(.bpmn-token-simulation-container .bts-scopes) {
-  transform: scale(var(--bts-toggle-scale, 1));
-  transform-origin: top left;
-}
-
-/* Trim the toggle pill down from its 16px default — smaller and less dominant,
-   but still clearly larger than the 11px chrome buttons. Its icon is height:1em,
-   so font-size drives the whole pill; composes with the --bts-toggle-scale above. */
-:deep(.bpmn-token-simulation-container .bts-toggle-mode) {
-  font-size: 13px;
-}
-
-/* Bottom-centred speed selector: keep upstream's translate(-50%, 0) and compose
-   with scale anchored to the element's bottom-centre so centring is preserved. */
-:deep(.bpmn-token-simulation-container .bts-set-animation-speed) {
-  transform: translate(-50%, 0) scale(var(--bts-toggle-scale, 1));
-  transform-origin: 50% 100%;
-}
-
-/* bpmn-js watermark anchored bottom-right; scale alongside the simulation chrome. */
-:deep(.bpmn-token-simulation-container .bjs-powered-by) {
-  transform: scale(var(--bts-toggle-scale, 1));
-  transform-origin: bottom right;
 }
 </style>
