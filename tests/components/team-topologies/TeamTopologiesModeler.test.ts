@@ -13,6 +13,7 @@ const { mockViewerImport, mockSaveSVG, mockViewerDestroy, MockViewer, mockModele
 }))
 
 vi.mock('@miragon/team-topologies-renderer', () => ({ Viewer: MockViewer, Modeler: MockModeler }))
+vi.mock('@slidev/client', () => ({ onSlideEnter: vi.fn() }))
 
 import { emptyDocument, parseDocument, serializeDocument } from '@miragon/team-topologies-schema-model'
 import TeamTopologiesModeler from '../../../components/team-topologies/TeamTopologiesModeler.vue'
@@ -104,18 +105,45 @@ describe('TeamTopologiesModeler.vue', () => {
     expect(mockModelerImport).toHaveBeenCalledWith(expect.objectContaining({ title: 'Online shop' }))
   })
 
-  it('shows the edited diagram in the preview after closing and destroys the modeler', async () => {
+  it('mounts the modeler into the fullscreen overlay', async () => {
     mockFetchSuccess()
-    mockModelerExport.mockReturnValue(EDITED_DOCUMENT)
     mountModeler()
     await flushPromises()
+
+    findButton('Edit')!.click()
+    await flushPromises()
+
+    const [{ container }] = MockModeler.mock.calls[0]
+    expect(container.closest('.fullscreen-overlay')).not.toBeNull()
+    expect(document.body.contains(container)).toBe(true)
+  })
+
+  it('shows the edited diagram in the preview after closing and destroys the modeler', async () => {
+    mockFetchSuccess()
+    mountModeler()
+    await flushPromises()
+
+    findButton('Edit')!.click()
+    await flushPromises()
+    mockModelerExport.mockReturnValue(EDITED_DOCUMENT)
+    findButton('Close')!.click()
+    await flushPromises()
+
+    expect(mockViewerImport).toHaveBeenLastCalledWith(expect.objectContaining({ title: 'Online shop, reorganised' }))
+    expect(mockModelerDestroy).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the preview when the modeler closes without edits', async () => {
+    mockFetchSuccess()
+    mountModeler()
+    await flushPromises()
+    const rendersBeforeEditing = mockViewerImport.mock.calls.length
 
     findButton('Edit')!.click()
     await flushPromises()
     findButton('Close')!.click()
     await flushPromises()
 
-    expect(mockViewerImport).toHaveBeenLastCalledWith(expect.objectContaining({ title: 'Online shop, reorganised' }))
-    expect(mockModelerDestroy).toHaveBeenCalledOnce()
+    expect(mockViewerImport).toHaveBeenCalledTimes(rendersBeforeEditing)
   })
 })

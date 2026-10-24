@@ -1,24 +1,17 @@
 <template>
   <DiagramModeler
-    diagramKind="Team Topologies"
+    :notation="notation"
     :filePath="props.teamTopologiesFilePath"
-    :blankSource="blankTeamTopologiesDiagram"
     :width="props.width"
     :height="props.height"
-    :exportSvg="exportTeamTopologiesSvg"
-    :openModeler="openTeamTopologiesModeler"
     :modelerStyles="modelerStyles"
   />
 </template>
 
 <script setup lang="ts">
 import modelerStyles from '@miragon/team-topologies-renderer/assets/team-topologies.css?inline'
-import {
-  blankTeamTopologiesDiagram,
-  exportTeamTopologiesSvg,
-  openTeamTopologiesModeler,
-} from '../../plugins/team-topologies/teamTopologiesDiagram'
-import DiagramModeler from '../../shared/ui/DiagramModeler.vue'
+import { TeamTopologiesNotation } from '../../src/team-topologies/TeamTopologiesNotation'
+import DiagramModeler from '../../src/shared/ui/DiagramModeler.vue'
 
 const props = withDefaults(defineProps<{
   teamTopologiesFilePath?: string
@@ -28,4 +21,6 @@ const props = withDefaults(defineProps<{
   width: '100%',
   height: '500px',
 })
+
+const notation = new TeamTopologiesNotation()
 </script>

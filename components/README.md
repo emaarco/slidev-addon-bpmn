@@ -33,11 +33,10 @@ end users should mount it directly.
   `components/bpmn/Bpmn.vue` is the global `<Bpmn>`. A helper placed here
   (`components/ui/Button.vue`, or any `.ts` file) would leak into every deck as
   a global too. Don't hide internals here.
-- **Internal building blocks live outside `components/`.** Shared UI atoms and
-  helpers go in [`../shared/`](../shared) (`shared/ui/*`, `shared/lib/*`) and are
-  imported explicitly — they never touch the consumer's global namespace.
-- Modeler-specific logic such as engine wiring sits in
-  [`../plugins/<modeler>/`](../plugins).
+- **Internal building blocks live in [`../src/`](../src).** Shared UI and
+  infrastructure go in `src/shared/` (`ui/*`, `lib/*`), modeler-specific logic
+  such as notation classes and engine wiring in `src/<modeler>/`. They are
+  imported explicitly and never touch the consumer's global namespace.
 
 ## Current components
 

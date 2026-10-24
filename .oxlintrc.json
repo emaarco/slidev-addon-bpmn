@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "builtin": true,
+    "browser": true,
+    "es2024": true
+  },
+  "ignorePatterns": ["**/dist/**", "**/node_modules/**", ".context/**"],
+  "rules": {
+    "max-classes-per-file": ["error", 1]
+  },
+  "jsPlugins": ["./tools/oxlint/architecture-plugin.mjs"],
+  "overrides": [
+    {
+      "files": ["components/**/*.ts", "src/**/*.ts"],
+      "rules": {
+        "architecture/no-top-level-functions": "error"
+      }
+    },
+    {
+      "files": ["**/utils/**"],
+      "rules": {
+        "architecture/no-top-level-functions": "off"
+      }
+    }
+  ]
+}

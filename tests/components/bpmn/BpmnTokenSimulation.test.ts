@@ -1,313 +1,329 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 
-const { mockDestroy, mockImportXML, mockResized, mockViewbox, mockGet, MockBpmnViewer } = vi.hoisted(() => ({
-  mockDestroy: vi.fn(),
-  mockImportXML: vi.fn(),
-  mockResized: vi.fn(),
-  mockViewbox: vi.fn(),
-  mockGet: vi.fn(),
-  MockBpmnViewer: vi.fn(),
+vi.mock('bpmn-js/lib/Viewer', async () => ({ default: (await import('../../src/bpmn/fakeBpmnJs')).FakeBpmnViewer }))
+vi.mock('bpmn-js-token-simulation/lib/viewer', () => ({ default: 'token-simulation-viewer' }))
+vi.mock('@emaarco/bpmn-js-data-simulation', () => ({ default: 'data-simulation' }))
+vi.mock('../../../src/bpmn/engines/zeebe', () => ({
+  zeebeEngine: { additionalModules: ['zeebe-module'], moddleExtensions: { zeebe: { name: 'zeebe' } }, supportsTransactionBoundaries: false },
+}))
+vi.mock('../../../src/bpmn/engines/camunda7', () => ({
+  camunda7Engine: { additionalModules: ['camunda7-module'], moddleExtensions: { camunda: { name: 'camunda' } }, supportsTransactionBoundaries: true },
 }))
 
-vi.mock('bpmn-js/lib/Viewer', () => ({
-  default: MockBpmnViewer,
-}))
-
-vi.mock('bpmn-js-token-simulation/lib/viewer', () => ({
-  default: {},
-}))
-
-const { slideEnterCallbacks } = vi.hoisted(() => ({
-  slideEnterCallbacks: [] as Array<() => void>,
-}))
+const { slideEnterCallbacks } = vi.hoisted(() => ({ slideEnterCallbacks: [] as Array<() => Promise<void>> }))
 
 vi.mock('@slidev/client', () => ({
-  onSlideEnter: vi.fn((cb: () => void) => {
-    slideEnterCallbacks.push(cb)
-  }),
+  onSlideEnter: (callback: () => Promise<void>) => slideEnterCallbacks.push(callback),
 }))
 
-import DataSimulationModule from '@emaarco/bpmn-js-data-simulation'
 import BpmnTokenSimulation from '../../../components/bpmn/BpmnTokenSimulation.vue'
+import { bpmnJs, SMALL_DIAGRAM } from '../../src/bpmn/fakeBpmnJs'
 
-function mockFetchSuccess(xml = '<definitions></definitions>') {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-    ok: true,
-    text: () => Promise.resolve(xml),
-  }))
+enableAutoUnmount(afterEach)
+
+const BPMN_XML = '<definitions id="newsletter"></definitions>'
+const SCENARIOS = { scenarios: [{ id: 'small-order' }] }
+
+function mockFetchFiles(files: Record<string, string>) {
+  const fetchMock = vi.fn().mockImplementation((url: string) => {
+    const path = Object.keys(files).find(file => url.endsWith(`/${file}`))
+    return Promise.resolve(path === undefined
+      ? { ok: false, status: 404 }
+      : { ok: true, text: () => Promise.resolve(files[path]) })
+  })
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
 }
 
-function mockFetchByPath(files: Record<string, string>) {
-  vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
-    const path = Object.keys(files).find(key => url.endsWith(key))
-    return Promise.resolve({ ok: true, text: () => Promise.resolve(files[path!]) })
-  }))
+function mockFetchSuccess() {
+  return mockFetchFiles({ 'test.bpmn': BPMN_XML })
 }
 
-async function renderWith(props: Record<string, unknown>) {
-  const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn', ...props } })
-  giveContainerDimensions(wrapper)
-  await new Promise(resolve => setTimeout(resolve, 50))
-  await flushPromises()
-  return MockBpmnViewer.mock.calls[0][0]
+function giveSize(element: Element, width: number, height: number) {
+  Object.defineProperty(element, 'clientWidth', { value: width, configurable: true })
+  Object.defineProperty(element, 'clientHeight', { value: height, configurable: true })
 }
 
-function mockFetchFailure() {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-    ok: false,
-    status: 404,
-  }))
+function mountSimulation(props: Record<string, unknown> = {}, canvasWidth = 800) {
+  const wrapper = mount(BpmnTokenSimulation, { attachTo: document.body, props: { bpmnFilePath: 'test.bpmn', ...props } })
+  giveSize(wrapper.find('.live-diagram-canvas').element, canvasWidth, 500)
+  return wrapper
 }
 
-function giveContainerDimensions(wrapper: ReturnType<typeof mount>) {
-  const containerEl = wrapper.find('div[style*="calc"]').element as HTMLDivElement
-  if (containerEl) {
-    Object.defineProperty(containerEl, 'clientWidth', { value: 800, configurable: true })
-    Object.defineProperty(containerEl, 'clientHeight', { value: 500, configurable: true })
+async function settle() {
+  for (let i = 0; i < 3; i++) {
+    await flushPromises()
+    await new Promise(resolve => setTimeout(resolve, 0))
   }
+}
+
+async function mountAndRender(props?: Record<string, unknown>, canvasWidth?: number) {
+  const wrapper = mountSimulation(props, canvasWidth)
+  await settle()
+  return wrapper
+}
+
+function button(title: string): HTMLButtonElement | null {
+  return document.body.querySelector(`button[title="${title}"]`)
+}
+
+async function openFullscreen() {
+  button('Open in fullscreen')!.click()
+  await nextTick()
+  giveSize(document.body.querySelector('.bpmn-token-simulation-fullscreen')!, 1600, 900)
+  await settle()
+}
+
+function overlay(): Element | null {
+  return document.body.querySelector('.fullscreen-overlay')
 }
 
 describe('BpmnTokenSimulation.vue', () => {
   beforeEach(() => {
+    bpmnJs.reset()
     slideEnterCallbacks.length = 0
-    mockDestroy.mockClear()
-    mockImportXML.mockClear()
-    mockResized.mockClear()
-    mockViewbox.mockClear()
-    mockGet.mockClear()
-    MockBpmnViewer.mockClear()
-
-    mockImportXML.mockResolvedValue(undefined)
-    // Default viewbox getter returns a sensible inner bbox so fitDiagram has something
-    // to work with; tests that assert on the setter inspect the most recent call.
-    mockViewbox.mockImplementation((box?: unknown) => {
-      if (box) return undefined
-      return {
-        inner: { x: 0, y: 0, width: 1000, height: 500 },
-        outer: { width: 800, height: 500 },
-      }
-    })
-    mockGet.mockReturnValue({ resized: mockResized, viewbox: mockViewbox })
-    MockBpmnViewer.mockImplementation(function () {
-      return {
-        importXML: mockImportXML,
-        destroy: mockDestroy,
-        get: mockGet,
-      }
-    })
-
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
-  afterEach(() => {
-    vi.unstubAllGlobals()
-    vi.useRealTimers()
-  })
+  describe('inline viewer', () => {
+    it('shows the loading state and no Expand button until the diagram is rendered', () => {
+      mockFetchSuccess()
 
-  it('shows loading state initially', () => {
-    mockFetchSuccess()
-    const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
-    expect(wrapper.text()).toContain('Loading BPMN diagram...')
-  })
+      const wrapper = mountSimulation()
 
-  it('defaults containerHeight to 500px when height is auto', () => {
-    mockFetchSuccess()
-    const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
-    const outerDiv = wrapper.find('div').element as HTMLDivElement
-    expect(outerDiv.style.height).toBe('500px')
-  })
-
-  it('uses provided height for containerHeight', () => {
-    mockFetchSuccess()
-    const wrapper = mount(BpmnTokenSimulation, {
-      props: { bpmnFilePath: 'test.bpmn', height: '700px' },
-    })
-    const outerDiv = wrapper.find('div').element as HTMLDivElement
-    expect(outerDiv.style.height).toBe('700px')
-  })
-
-  it('sizes the root to the width prop while the inner container fills it', () => {
-    mockFetchSuccess()
-    const wrapper = mount(BpmnTokenSimulation, {
-      props: { bpmnFilePath: 'test.bpmn', width: '90%' },
-    })
-    const rootDiv = wrapper.find('div').element as HTMLDivElement
-    const innerDiv = wrapper.find('div[style*="calc"]').element as HTMLDivElement
-    // The root carries the actual width; the inner container fills it (100% - margins)
-    // instead of re-applying the % — which used to shrink a 90% viewer to ~81% and centre it.
-    expect(rootDiv.style.width).toBe('90%')
-    expect(innerDiv.style.width).toBe('calc(100% - 10px)')
-    expect(innerDiv.style.height).toBe('calc(100% - 10px)')
-  })
-
-  it('renders successfully when container has dimensions', async () => {
-    mockFetchSuccess()
-    const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
-    giveContainerDimensions(wrapper)
-
-    await new Promise(resolve => setTimeout(resolve, 50))
-    await flushPromises()
-
-    expect(mockImportXML).toHaveBeenCalled()
-    expect(mockResized).toHaveBeenCalled()
-    // fitDiagram() fires a getter call (no args) and one setter call carrying the
-    // padded viewbox object.
-    const setterCalls = mockViewbox.mock.calls.filter((args) => args.length === 1 && typeof args[0] === 'object')
-    expect(setterCalls.length).toBeGreaterThanOrEqual(1)
-    expect(setterCalls[0][0]).toMatchObject({
-      x: expect.any(Number),
-      y: expect.any(Number),
-      width: expect.any(Number),
-      height: expect.any(Number),
-    })
-  })
-
-  it('re-fits the diagram when the container resizes after the initial fit', async () => {
-    let observerCallback: ((entries: Array<{ contentRect: { width: number, height: number } }>) => void) | null = null
-    vi.stubGlobal('ResizeObserver', class {
-      constructor(cb: (entries: Array<{ contentRect: { width: number, height: number } }>) => void) {
-        observerCallback = cb
-      }
-      observe() {}
-      disconnect() {}
+      expect(wrapper.text()).toContain('Loading BPMN diagram...')
+      expect(button('Open in fullscreen')).toBeNull()
     })
 
-    mockFetchSuccess()
-    const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
-    giveContainerDimensions(wrapper)
+    it('defaults to full width and a 500px height for height="auto"', () => {
+      mockFetchSuccess()
 
-    await new Promise(resolve => setTimeout(resolve, 50))
-    await flushPromises()
+      const root = mountSimulation().element as HTMLDivElement
 
-    const resizedBefore = mockResized.mock.calls.length
-    const setterBefore = mockViewbox.mock.calls.filter((args) => args.length === 1 && typeof args[0] === 'object').length
-    expect(observerCallback).not.toBeNull()
+      expect(root.style.width).toBe('100%')
+      expect(root.style.height).toBe('500px')
+    })
 
-    observerCallback!([{ contentRect: { width: 450, height: 290 } }])
-    await flushPromises()
+    it('applies the width and height props to the root only', () => {
+      mockFetchSuccess()
 
-    const setterAfter = mockViewbox.mock.calls.filter((args) => args.length === 1 && typeof args[0] === 'object').length
-    expect(mockResized.mock.calls.length).toBeGreaterThan(resizedBefore)
-    expect(setterAfter).toBeGreaterThan(setterBefore)
-  })
+      const wrapper = mountSimulation({ width: '90%', height: '700px' })
 
-  it('bails silently when container dimensions never arrive (Slidev preload)', async () => {
-    vi.useFakeTimers()
-    mockFetchSuccess()
-    const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
+      const root = wrapper.element as HTMLDivElement
+      const liveDiagram = wrapper.find('.live-diagram').element as HTMLDivElement
+      expect(root.style.width).toBe('90%')
+      expect(root.style.height).toBe('700px')
+      expect(liveDiagram.style.width).toBe('100%')
+      expect(liveDiagram.style.height).toBe('100%')
+    })
 
-    await vi.advanceTimersByTimeAsync(6000)
-    await flushPromises()
+    it('renders the fetched file in a fitted token simulation viewer', async () => {
+      const fetchMock = mockFetchSuccess()
 
-    // No error message surfaced; no viewer constructed.
-    expect(wrapper.text()).not.toContain('Container dimensions not available within timeout')
-    expect(wrapper.text()).not.toContain('Failed to load BPMN')
-    expect(MockBpmnViewer).not.toHaveBeenCalled()
-  })
+      const wrapper = await mountAndRender()
 
-  it('prevents duplicate rendering', async () => {
-    mockFetchSuccess()
-    const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
-    giveContainerDimensions(wrapper)
+      const canvas = wrapper.find('.live-diagram-canvas').element
+      expect(fetchMock).toHaveBeenCalledWith(`${window.location.origin}/test.bpmn`)
+      expect(bpmnJs.viewers).toHaveLength(1)
+      expect(bpmnJs.lastViewer().options.container).toBe(canvas)
+      expect(bpmnJs.lastViewer().options.additionalModules).toContain('token-simulation-viewer')
+      expect(bpmnJs.lastViewer().options).not.toHaveProperty('dataSimulation')
+      expect(bpmnJs.lastViewer().importXML).toHaveBeenCalledWith(BPMN_XML)
+      expect(bpmnJs.lastViewer().fittedViewbox()).toBeDefined()
+      expect(wrapper.text()).not.toContain('Loading BPMN diagram...')
+    })
 
-    await new Promise(resolve => setTimeout(resolve, 50))
-    await flushPromises()
+    it('scales the simulation toggle down in a narrow viewer', async () => {
+      mockFetchSuccess()
 
-    const callCountAfterMount = MockBpmnViewer.mock.calls.length
+      const wrapper = await mountAndRender({}, 300)
 
-    // Trigger onSlideEnter — should NOT create another viewer
-    const lastCallback = slideEnterCallbacks[slideEnterCallbacks.length - 1]
-    if (lastCallback) {
-      await lastCallback()
-      await flushPromises()
-    }
+      const canvas = wrapper.find('.live-diagram-canvas').element as HTMLElement
+      expect(canvas.style.getPropertyValue('--bts-toggle-scale')).toBe('0.5')
+    })
 
-    expect(MockBpmnViewer.mock.calls.length).toBe(callCountAfterMount)
-  })
+    it('caps the fit at maxScale', async () => {
+      bpmnJs.viewbox = SMALL_DIAGRAM
+      mockFetchSuccess()
 
-  it('renders on slide-enter after onMounted bailed (preloaded then visible)', async () => {
-    vi.useFakeTimers()
-    mockFetchSuccess()
-    const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
+      await mountAndRender({ maxScale: 1 })
 
-    await vi.advanceTimersByTimeAsync(6000)
-    await flushPromises()
-    expect(MockBpmnViewer).not.toHaveBeenCalled()
+      expect(bpmnJs.lastViewer().fittedViewbox()).toMatchObject({ width: 800, height: 500 })
+    })
 
-    giveContainerDimensions(wrapper)
+    it('shows an error and no Expand button when the file cannot be fetched', async () => {
+      mockFetchFiles({})
 
-    const lastCallback = slideEnterCallbacks[slideEnterCallbacks.length - 1]
-    if (lastCallback) {
-      await lastCallback()
+      const wrapper = await mountAndRender({ bpmnFilePath: 'missing.bpmn' })
+
+      expect(wrapper.text()).toContain('Failed to load BPMN: Failed to fetch BPMN file: 404')
+      expect(button('Open in fullscreen')).toBeNull()
+      expect(bpmnJs.viewers).toHaveLength(0)
+    })
+
+    it('waits for a hidden slide and renders once it is entered with a size', async () => {
+      vi.useFakeTimers()
+      mockFetchSuccess()
+      const wrapper = mount(BpmnTokenSimulation, { attachTo: document.body, props: { bpmnFilePath: 'test.bpmn' } })
+
+      await vi.advanceTimersByTimeAsync(6000)
+      expect(bpmnJs.viewers).toHaveLength(0)
+      expect(wrapper.text()).not.toContain('Failed to load BPMN')
+
+      giveSize(wrapper.find('.live-diagram-canvas').element, 800, 500)
+      const slideEntered = slideEnterCallbacks[0]()
       await vi.advanceTimersByTimeAsync(100)
-      await flushPromises()
-    }
+      await slideEntered
 
-    expect(mockImportXML).toHaveBeenCalled()
+      expect(bpmnJs.viewers).toHaveLength(1)
+      expect(button('Open in fullscreen')).not.toBeNull()
+    })
+
+    it('does not render again when the slide is entered after the first render', async () => {
+      mockFetchSuccess()
+      await mountAndRender()
+
+      await slideEnterCallbacks[0]()
+      await settle()
+
+      expect(bpmnJs.viewers).toHaveLength(1)
+    })
+
+    it('destroys the viewer on unmount', async () => {
+      mockFetchSuccess()
+      const wrapper = await mountAndRender()
+
+      wrapper.unmount()
+
+      expect(bpmnJs.lastViewer().destroy).toHaveBeenCalledOnce()
+    })
+
+    it('unmounts cleanly before the render finished', () => {
+      mockFetchSuccess()
+      const wrapper = mountSimulation()
+
+      expect(() => wrapper.unmount()).not.toThrow()
+    })
   })
 
-  it('destroys viewer on unmount', async () => {
-    mockFetchSuccess()
-    const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
-    giveContainerDimensions(wrapper)
+  describe('fullscreen viewer', () => {
+    it('offers no Expand button with fullscreen=false', async () => {
+      mockFetchSuccess()
 
-    await new Promise(resolve => setTimeout(resolve, 50))
-    await flushPromises()
+      await mountAndRender({ fullscreen: false })
 
-    wrapper.unmount()
-    expect(mockDestroy).toHaveBeenCalled()
+      expect(bpmnJs.viewers).toHaveLength(1)
+      expect(button('Open in fullscreen')).toBeNull()
+    })
+
+    it('opens a second viewer on the rendered diagram when Expand is clicked', async () => {
+      mockFetchSuccess()
+      await mountAndRender()
+
+      await openFullscreen()
+
+      const fullscreenContainer = document.body.querySelector('.fullscreen-overlay .bpmn-token-simulation-fullscreen')
+      expect(overlay()).not.toBeNull()
+      expect(bpmnJs.viewers).toHaveLength(2)
+      expect(bpmnJs.lastViewer().options.container).toBe(fullscreenContainer)
+      expect(bpmnJs.lastViewer().importXML).toHaveBeenCalledWith(BPMN_XML)
+      expect(bpmnJs.lastViewer().fittedViewbox()).toBeDefined()
+    })
+
+    it('destroys only the fullscreen viewer when Close is clicked', async () => {
+      mockFetchSuccess()
+      await mountAndRender()
+      await openFullscreen()
+      const [inlineViewer, fullscreenViewer] = bpmnJs.viewers
+
+      button('Close fullscreen')!.click()
+      await settle()
+
+      expect(overlay()).toBeNull()
+      expect(fullscreenViewer.destroy).toHaveBeenCalledOnce()
+      expect(inlineViewer.destroy).not.toHaveBeenCalled()
+    })
+
+    it('destroys both viewers on unmount while fullscreen is open', async () => {
+      mockFetchSuccess()
+      const wrapper = await mountAndRender()
+      await openFullscreen()
+
+      wrapper.unmount()
+
+      expect(bpmnJs.viewers.map(viewer => viewer.destroy.mock.calls.length)).toEqual([1, 1])
+      expect(overlay()).toBeNull()
+    })
   })
 
-  it('does not error on unmount before render completes', async () => {
-    vi.useFakeTimers()
-    mockFetchSuccess()
-    const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'test.bpmn' } })
-    expect(() => wrapper.unmount()).not.toThrow()
-  })
+  describe('data simulation', () => {
+    it.each([
+      ['zeebe', { zeebe: { name: 'zeebe' } }],
+      ['camunda7', { camunda: { name: 'camunda' } }],
+    ])('runs with the %s moddle and the fetched scenarios', async (engine, moddleExtensions) => {
+      mockFetchFiles({ 'test.bpmn': BPMN_XML, 'test.scenarios.json': JSON.stringify(SCENARIOS) })
 
-  it('shows error on fetch failure', async () => {
-    mockFetchFailure()
-    const wrapper = mount(BpmnTokenSimulation, { props: { bpmnFilePath: 'missing.bpmn' } })
-    giveContainerDimensions(wrapper)
+      await mountAndRender({ engine, scenariosFilePath: 'test.scenarios.json' })
 
-    await new Promise(resolve => setTimeout(resolve, 50))
-    await flushPromises()
+      expect(bpmnJs.lastViewer().options).toMatchObject({
+        additionalModules: expect.arrayContaining(['data-simulation']),
+        moddleExtensions,
+        dataSimulation: { engine, scenarios: SCENARIOS },
+      })
+    })
 
-    expect(wrapper.text()).toContain('Failed to load BPMN')
-  })
+    it('runs the plain token simulation for an engine without scenarios', async () => {
+      mockFetchSuccess()
 
-  it('runs the plain token simulation without an engine', async () => {
-    mockFetchSuccess()
-    const options = await renderWith({})
+      await mountAndRender({ engine: 'zeebe' })
 
-    expect(options.additionalModules).not.toContain(DataSimulationModule)
-    expect(options.dataSimulation).toBeUndefined()
-  })
+      expect(bpmnJs.lastViewer().options.additionalModules).not.toContain('data-simulation')
+      expect(bpmnJs.lastViewer().options).not.toHaveProperty('dataSimulation')
+    })
 
-  it('adds the data simulation with the engine moddle and the fetched scenarios', async () => {
-    const scenarios = { scenarios: [{ id: 'small-order' }] }
-    mockFetchByPath({ 'test.bpmn': '<definitions></definitions>', 'test.scenarios.json': JSON.stringify(scenarios) })
-    const options = await renderWith({ engine: 'zeebe', scenariosFilePath: 'test.scenarios.json' })
+    it('runs the plain token simulation for scenarios without an engine', async () => {
+      const fetchMock = mockFetchSuccess()
 
-    expect(options.additionalModules).toContain(DataSimulationModule)
-    expect(Object.keys(options.moddleExtensions)).toEqual(['zeebe'])
-    expect(options.dataSimulation).toEqual({ engine: 'zeebe', scenarios })
-  })
+      await mountAndRender({ scenariosFilePath: 'test.scenarios.json' })
 
-  it('runs the plain token simulation for an engine without scenarios', async () => {
-    mockFetchSuccess()
-    const options = await renderWith({ engine: 'zeebe' })
+      expect(bpmnJs.lastViewer().options).not.toHaveProperty('dataSimulation')
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
 
-    expect(options.additionalModules).not.toContain(DataSimulationModule)
-    expect(options.dataSimulation).toBeUndefined()
-  })
+    it('fetches the scenarios once for the inline and the fullscreen viewer', async () => {
+      const fetchMock = mockFetchFiles({ 'test.bpmn': BPMN_XML, 'test.scenarios.json': JSON.stringify(SCENARIOS) })
+      await mountAndRender({ engine: 'zeebe', scenariosFilePath: 'test.scenarios.json' })
 
-  it('reads Camunda 7 mappings with the camunda moddle', async () => {
-    mockFetchByPath({ 'test.bpmn': '<definitions></definitions>', 'test.scenarios.json': '{"scenarios":[]}' })
-    const options = await renderWith({ engine: 'camunda7', scenariosFilePath: 'test.scenarios.json' })
+      await openFullscreen()
 
-    expect(Object.keys(options.moddleExtensions)).toEqual(['camunda'])
-    expect(options.dataSimulation).toEqual({ engine: 'camunda7', scenarios: { scenarios: [] } })
+      const scenarioFetches = fetchMock.mock.calls.filter(([url]) => url.endsWith('/test.scenarios.json'))
+      expect(scenarioFetches).toHaveLength(1)
+      expect(bpmnJs.viewers.map(viewer => viewer.options.dataSimulation.scenarios)).toEqual([SCENARIOS, SCENARIOS])
+    })
+
+    it('shows an error when the scenarios cannot be fetched', async () => {
+      mockFetchSuccess()
+
+      const wrapper = await mountAndRender({ engine: 'zeebe', scenariosFilePath: 'missing.scenarios.json' })
+
+      expect(wrapper.text()).toContain('Failed to load BPMN: Failed to fetch BPMN file: 404')
+      expect(bpmnJs.viewers).toHaveLength(0)
+    })
+
+    it('fetches the scenarios again on slide enter after a failed fetch', async () => {
+      mockFetchSuccess()
+      const wrapper = await mountAndRender({ engine: 'zeebe', scenariosFilePath: 'test.scenarios.json' })
+      expect(wrapper.text()).toContain('Failed to load BPMN')
+
+      const retriedFetch = mockFetchFiles({ 'test.bpmn': BPMN_XML, 'test.scenarios.json': JSON.stringify(SCENARIOS) })
+      await slideEnterCallbacks[0]()
+      await settle()
+
+      expect(retriedFetch).toHaveBeenCalledWith(`${window.location.origin}/test.scenarios.json`)
+      expect(wrapper.text()).not.toContain('Failed to load BPMN')
+      expect(bpmnJs.lastViewer().options.dataSimulation.scenarios).toEqual(SCENARIOS)
+    })
   })
 })

@@ -1,0 +1,68 @@
+.dmn-table-wrapper .dmn-decision-table-container {
+  font-size: var(--dmn-table-font-size, 12px) !important;
+}
+
+.dmn-table-wrapper .dmn-decision-table-container .decision-table-name {
+  font-size: calc(var(--dmn-table-font-size, 12px) * 1.5) !important;
+}
+
+.dmn-table-wrapper .dmn-decision-table-container thead .input-label,
+.dmn-table-wrapper .dmn-decision-table-container thead .input-expression,
+.dmn-table-wrapper .dmn-decision-table-container thead .output-label,
+.dmn-table-wrapper .dmn-decision-table-container thead .output-name {
+  font-size: calc(var(--dmn-table-font-size, 12px) * 1.15) !important;
+}
+
+.dmn-table-wrapper .dmn-decision-table-container thead .clause,
+.dmn-table-wrapper .dmn-decision-table-container thead .input-variable,
+.dmn-table-wrapper .dmn-decision-table-container thead .output-variable {
+  font-size: calc(var(--dmn-table-font-size, 12px) * 0.85) !important;
+}
+
+/* Force table to fill container width, no x-scroll. Also re-point the body font
+   size at the variable: dmn-js pins `.tjs-container` to a fixed 21px, so the rule
+   cells would otherwise ignore the `font-size` set on the container above and the
+   rows would never shrink. */
+.dmn-table-wrapper .tjs-container {
+  width: 100% !important;
+  font-size: var(--dmn-table-font-size, 12px) !important;
+}
+
+.dmn-table-wrapper .tjs-table-container {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+.dmn-table-wrapper .tjs-table {
+  width: 100% !important;
+  table-layout: fixed !important;
+}
+
+.dmn-table-wrapper th:not(:first-child),
+.dmn-table-wrapper td:not(:first-child) {
+  padding: 2px !important;
+}
+
+.dmn-table-wrapper thead .input-label,
+.dmn-table-wrapper thead .input-expression,
+.dmn-table-wrapper thead .output-label,
+.dmn-table-wrapper thead .output-name {
+  margin: 4px 4px !important;
+}
+
+.dmn-table-wrapper .decision-table-header-separator {
+  height: 16px !important;
+}
+
+.dmn-table-wrapper th.index-column {
+  width: 36px !important;
+}
+
+.dmn-table-wrapper.hide-annotations th.annotation,
+.dmn-table-wrapper.hide-annotations td.annotation {
+  display: none !important;
+}
+
+.dmn-table-wrapper.hide-drd-button .view-drd {
+  display: none !important;
+}
